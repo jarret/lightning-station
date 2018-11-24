@@ -19,7 +19,7 @@ DEPLOY_AUDIO = {
 AUDIO = DEPLOY_AUDIO if PRODUCTION else TEST_AUDIO
 
 TEST_PLAY = ['echo', 'omxplayer']
-DEPLOY_PLAY = ['echo', 'omxplayer']
+DEPLOY_PLAY = ['omxplayer']
 
 PLAY = DEPLOY_PLAY if PRODUCTION else TEST_PLAY
 
