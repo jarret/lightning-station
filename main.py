@@ -5,6 +5,8 @@ import json
 import time
 import subprocess
 
+PRODUCTION = False
+
 TEST_AUDIO = {
     'rickroll':  {'path': '/home/jarret/audio/rickroll.mp3'},
     'yousuffer': {'path': '/home/jarret/audio/yousuffer.wav'},
@@ -14,17 +16,17 @@ DEPLOY_AUDIO = {
     'yousuffer': {'path': '/home/pi/btc-rust/audio/yousuffer.wav'},
 }
 
-AUDIO = TEST_AUDIO
+AUDIO = DEPLOY_AUDIO if PRODUCTION else TEST_AUDIO
 
 TEST_PLAY = ['echo', 'omxplayer']
 DEPLOY_PLAY = ['echo', 'omxplayer']
 
-PLAY = TEST_PLAY
+PLAY = DEPLOY_PLAY if PRODUCTION else TEST_PLAY
 
 TEST_BLOCK = ['echo', '{\"headers\": 123}']
 DEPLOY_BLOCK = ['/home/pi/btc-rust/bitcoind-run/cli.sh', "getblockchaininfo"]
 
-BLOCK = TEST_BLOCK
+BLOCK = DEPLOY_BLOCK if PRODUCTION else TEST_BLOCK
 
 
 class Monitor(object):
