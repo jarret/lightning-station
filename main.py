@@ -9,6 +9,7 @@ from txzmq import ZmqEndpoint, ZmqFactory, ZmqPubConnection, ZmqSubConnection
 from tawker import Tawker
 from gen_name import gen_name
 from bitcoinrpc import get_block_height
+from phrases import get_phrase
 
 ###############################################################################
 
@@ -16,9 +17,12 @@ def new_block_hash(block_hash):
     tawker = Tawker()
     name = gen_name()
     height = get_block_height(block_hash)
-    line = 'new block height %d. I dub thee "%s".' % (height, name)
+    line = 'New block: %d. I dub thee "%s."' % (height, name)
     tawker.tawk(line)
-    return line
+    time.sleep(0.5)
+    phrase = get_phrase()
+    tawker.tawk(phrase)
+    return line + " " + phrase
 
 def new_block_complete(result):
     print("complete: %s" % result)

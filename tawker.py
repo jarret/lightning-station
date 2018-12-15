@@ -8,6 +8,7 @@ class Tawker(object):
         p = subprocess.Popen(TAWK_CMD.split(" "), stdin=subprocess.PIPE)
         p.stdin.write(line.encode('utf-8'))
         p.stdin.close()
+        p.wait()
 
 if __name__ == '__main__':
     t = Tawker()
