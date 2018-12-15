@@ -1,9 +1,7 @@
 import subprocess
-
 from gen_name import gen_name
 
 TAWK_CMD = "espeak -v en-us"
-
 
 class Tawker(object):
     def tawk(self, line):

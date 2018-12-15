@@ -12,11 +12,6 @@ from bitcoinrpc import get_block_height
 
 ###############################################################################
 
-#def boof(string):
-#    print("boof: %s" % string)
-
-###############################################################################
-
 def new_block_hash(block_hash):
     tawker = Tawker()
     name = gen_name()
@@ -42,15 +37,11 @@ s.subscribe("hashblock".encode("utf-8"))
 
 def new_block(message):
     print(message)
-    do_new_block(message[1].decode('utf-8'))
-#s.gotMessage = doPrint
+    h = message[1].hex()
+    print(h)
+    do_new_block(h)
+
 s.messageReceived = new_block
-
-###############################################################################
-
-#l = task.LoopingCall(boof, "astring")
-#l.start(60.0)
-
 
 ###############################################################################
 
