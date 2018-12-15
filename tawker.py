@@ -5,7 +5,9 @@ TAWK_CMD = "espeak -v en-us"
 
 class Tawker(object):
     def tawk(self, line):
-        p = subprocess.Popen(TAWK_CMD.split(" "), stdin=subprocess.PIPE)
+        p = subprocess.Popen(TAWK_CMD.split(" "), stdin=subprocess.PIPE,
+                             stderr=subprocess.DEVNULL,
+                             stdout=subprocess.DEVNULL)
         p.stdin.write(line.encode('utf-8'))
         p.stdin.close()
         p.wait()
