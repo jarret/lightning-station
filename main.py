@@ -1,65 +1,58 @@
 #!/usr/bin/env python3
 
-import os
-import json
 import time
-import subprocess
 
-PRODUCTION = False
+from twisted.internet import reactor, threads, task
 
-TEST_AUDIO = {
-    'rickroll':  {'path': '/home/jarret/audio/rickroll.mp3'},
-    'yousuffer': {'path': '/home/jarret/audio/yousuffer.wav'},
-}
-DEPLOY_AUDIO = {
-    'rickroll':  {'path': '/home/pi/btc-rust/audio/rickroll.mp3'},
-    'yousuffer': {'path': '/home/pi/btc-rust/audio/yousuffer.wav'},
-}
+from txzmq import ZmqEndpoint, ZmqFactory, ZmqPubConnection, ZmqSubConnection
 
-AUDIO = DEPLOY_AUDIO if PRODUCTION else TEST_AUDIO
+from tawker import Tawker
+from gen_name import gen_name
+from bitcoinrpc import get_block_height
 
-TEST_PLAY = ['echo', 'omxplayer']
-DEPLOY_PLAY = ['omxplayer']
+###############################################################################
 
-PLAY = DEPLOY_PLAY if PRODUCTION else TEST_PLAY
+#def boof(string):
+#    print("boof: %s" % string)
 
-TEST_BLOCK = ['echo', '{\"headers\": 123}']
-DEPLOY_BLOCK = ['/home/pi/btc-rust/bitcoind-run/cli.sh', "getblockchaininfo"]
+###############################################################################
 
-BLOCK = DEPLOY_BLOCK if PRODUCTION else TEST_BLOCK
+def new_block_hash(block_hash):
+    tawker = Tawker()
+    name = gen_name()
+    height = get_block_height(block_hash)
+    line = 'new block height %d. I dub thee "%s".' % (height, name)
+    tawker.tawk(line)
+    return line
+
+def new_block_complete(result):
+    print("complete: %s" % result)
+
+def do_new_block(block_hash):
+    d = threads.deferToThread(new_block_hash, block_hash)
+    d.addCallback(new_block_complete)
+
+###############################################################################
+
+zf = ZmqFactory()
+e = ZmqEndpoint("connect", "tcp://127.0.0.1:28332")
+
+s = ZmqSubConnection(zf, e)
+s.subscribe("hashblock".encode("utf-8"))
+
+def new_block(message):
+    print(message)
+    do_new_block(message[1].decode('utf-8'))
+#s.gotMessage = doPrint
+s.messageReceived = new_block
+
+###############################################################################
+
+#l = task.LoopingCall(boof, "astring")
+#l.start(60.0)
 
 
-class Monitor(object):
-    def __init__(self):
-        self.block = 0
-        self.sound_path = AUDIO['yousuffer']['path']
+###############################################################################
 
-    def query_block(self):
-        info = json.loads(subprocess.check_output(BLOCK).decode('utf-8'))
-        return info['headers']
-
-    def play_sound(self):
-        subprocess.call(PLAY + [self.sound_path])
-
-    def cycle(self):
-        time.sleep(3)
-        block = self.query_block()
-        print("got block: %s" % block)
-        if block != self.block:
-            print("new block!")
-            self.play_sound()
-            self.block = block
-
-    def run(self):
-        while True:
-            self.cycle()
-
-
-if __name__ == '__main__':
-    #for aid, info in AUDIO.items():
-    #    print("aid: %s" % aid)
-    #    assert os.path.exists(info['path'])
-    m = Monitor()
-    print("running")
-    m.run()
-
+print("running reactor")
+reactor.run()
