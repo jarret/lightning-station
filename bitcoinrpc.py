@@ -50,7 +50,23 @@ class RPCHost(object):
 ###############################################################################
 
 
-def get_block_height(block_hash):
-    host = RPCHost()
-    info = host.call('getblock', block_hash)
-    return info['height']
+class Bitcoind(object):
+    def getblock(block_hash):
+        host = RPCHost()
+        return host.call('getblock', block_hash)
+
+    def getblock_raw(block_hash):
+        host = RPCHost()
+        return host.call('getblock', block_hash, 0)
+
+    def getmempoolinfo():
+        host = RPCHost()
+        return host.call('getmempoolinfo')
+
+    def getnetworkinfo():
+        host = RPCHost()
+        return host.call('getnetworkinfo')
+
+    def estimatesmartfee(blocks):
+        host = RPCHost()
+        return host.call('estimatesmartfee', blocks)

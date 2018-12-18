@@ -1,5 +1,5 @@
 import subprocess
-from gen_name import gen_name
+from gen_name import gen_block_name
 
 TAWK_CMD = "espeak -v en-us"
 
@@ -14,5 +14,5 @@ class Tawker(object):
 
 if __name__ == '__main__':
     t = Tawker()
-    name = gen_name()
+    name = gen_block_name("asdfasdf")
     t.tawk('new block 553627. I dub thee "%s."' % name)
