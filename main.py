@@ -2,6 +2,7 @@
 
 import time
 import argparse
+import logging
 
 from twisted.internet import reactor, task
 
@@ -60,8 +61,7 @@ class PeriodicUpdates(object):
         self.sui = sui
 
     def _update_time(self):
-        elapsed = time.time() - self.start_time
-        self.sui.update_info({'elapsed': elapsed})
+        self.sui.update_info({'current_time': time.time()})
 
     def _update_node_info(self):
         node_info = NodeInfo.fetch()
