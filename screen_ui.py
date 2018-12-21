@@ -102,20 +102,46 @@ class ScreenUI(object):
             lines.append(i)
         return self._wrap_filler(urwid.Pile(lines), "Network")
 
+
+    def _block_widget(self):
+        if 'block_name' not in self.info:
+            return self._wrap_filler(urwid.Pile([]), "(no block data)")
+        h = self._center_info_text("height: %d" %
+                                    self.info['block_height'])
+        bn = self._center_info_text("name: %s" %
+                                     self.info['block_name'])
+        p = self._center_info_text(self.info['block_phrase'])
+        at = self._center_info_text("arrival: %d" %
+                                     self.info['block_arrival_time'])
+        tx = self._center_info_text(
+            "txs: {:,}".format(self.info['block_n_txes']))
+
+        s = self._center_info_text(
+            "size: {:,} bytes".format(self.info['block_size']))
+        w = self._center_info_text(
+            "weight: {:,} bytes".format(self.info['block_weight']))
+        t = self._center_info_text(
+            "timestamp: %d" % self.info['block_timestamp'])
+        elapsed = time.time() - self.info['block_arrival_time']
+        e = self._center_info_text("elapsed: %d" % elapsed)
+
+        lines = [h, bn, p, at, tx, s, w, t, e]
+        return self._wrap_filler(urwid.Pile(lines), "Block")
+
     ###########################################################################
 
     def _build_widgets(self):
         fee = self._fee_estimate_widget()
         mem = self._mempool_widget()
         net = self._network_widget()
+        blk = self._block_widget()
 
-        col1 = urwid.Pile([fee, mem, net])
-        col2 = urwid.AttrMap(urwid.SolidFill(), "background")
+        col1 = urwid.Pile([fee, mem])
+        col2 = urwid.Pile([net, blk])
         col3 = urwid.AttrMap(urwid.SolidFill(), "background")
         cols = urwid.Columns([col1, col2, col3])
 
         self.loop.widget = cols
-
 
     ###########################################################################
 
