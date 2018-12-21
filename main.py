@@ -107,7 +107,8 @@ if __name__ == '__main__':
     # setup urwid screen output
     sui = ScreenUI(r, args.console)
     # listen on ZMQ for new blocks
-    queue = NewBlockQueue(r, sui)
+    queue = NewBlockQueue(r, sui,
+                          Bitcoind.getblockchaininfo()['bestblockhash'])
     # start periodic timers
     pu = PeriodicUpdates(sui)
     pu.run()

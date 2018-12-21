@@ -84,7 +84,7 @@ class NewBlockQueue(object):
         They are queued up for handling since they can arrive faster than
         they are able to be handled.
     """
-    def __init__(self, reactor, screen_ui):
+    def __init__(self, reactor, screen_ui, first_block_hash):
         f = ZmqFactory()
         f.reactor = reactor
         e = ZmqEndpoint("connect", "tcp://127.0.0.1:28332")
@@ -94,6 +94,10 @@ class NewBlockQueue(object):
         self.screen_ui = screen_ui
         self.new_block_queue = []
         self.queue_running = False
+
+        new_block = NewBlock(self, first_block_hash, self.screen_ui)
+        self.new_block_queue.append(new_block)
+        self._try_next()
 
     def finish_block(self):
         log("finish")

@@ -64,6 +64,10 @@ class Bitcoind(object):
         host = RPCHost()
         return host.call('getmempoolinfo')
 
+    def getblockchaininfo():
+        host = RPCHost()
+        return host.call('getblockchaininfo')
+
     def getnetworkinfo():
         host = RPCHost()
         return host.call('getnetworkinfo')
