@@ -84,6 +84,8 @@ class PeriodicUpdates(object):
 
 ###############################################################################
 
+DEFAULT_LOG_FILE = "/tmp/lightning-station.log"
+
 DESCRIPTION = ("Lighting Station - monitors and doodads for a bitcoin full "
                "node, lightning node and stuff that is fun and interesting.")
 
@@ -93,8 +95,11 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--console', action='store_true',
                         help="print info to console log instead of fancy "
                              "curses output")
+    parser.add_argument('-l', '--log-file', type=str, default=DEFAULT_LOG_FILE,
+                        help="File to write debug logging blabber to; Best to "
+                             "keep off of Pi's SD card.")
     args = parser.parse_args()
-    setup_log(args.console)
+    setup_log(args.console, args.log_file)
 
     log("hello")
 
