@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import urwid
 import time
 
 from twisted.internet import reactor, threads, task
@@ -11,6 +12,18 @@ from gen_name import gen_block_name
 from bitcoinrpc import Bitcoind
 from phrases import get_phrase
 from ip_address import get_ip_address
+
+
+###############################################################################
+
+COLS = 130
+ROWS = 40
+
+def assert_terminal_size(current_cols, current_rows):
+    s = "terminal size must be %dx%d, curently: %dx%d" % (
+        COLS, ROWS, current_cols, current_rows)
+    assert current_cols == COLS, s
+    assert current_rows == ROWS, s
 
 ###############################################################################
 
@@ -186,11 +199,77 @@ def node_stat_update():
 
 ###############################################################################
 
+PALETTE = [
+    ('banner', '', '', '', '#ffa', '#60d'),
+    ('streak', '', '', '', 'g50', '#60a'),
+    ('inside', '', '', '', 'g38', '#808'),
+    ('outside', '', '', '', 'g27', '#a06'),
+    ('bg', '', '', '', 'g7', '#d06'),
+    ('headings', 'white,underline', 'black', 'bold,underline'),
+    ('body_text', 'dark cyan', 'light gray'),
+          ]
+
+def exit_on_q(key):
+    if key in ('q', 'Q'):
+        raise urwid.ExitMainLoop()
+
+def setup_base_loop():
+    background_widget = urwid.SolidFill()
+    #print("sizing: %s" % placeholder.sizing())
+    loop = urwid.MainLoop(background_widget, PALETTE,
+                          event_loop=urwid.TwistedEventLoop(reactor=reactor),
+                          unhandled_input=exit_on_q)
+    cols, rows = loop.screen.get_cols_rows()
+    assert_terminal_size(cols, rows)
+    loop.screen.set_terminal_properties(colors=256)
+    loop.widget = urwid.AttrMap(background_widget, 'bg')
+    return loop
+
+def setup_urwid_loop():
+    loop = setup_base_loop()
+
+    loop.widget.original_widget = urwid.Filler(urwid.Pile([]))
+
+    #div = urwid.Divider()
+    #outside = urwid.AttrMap(div, 'outside')
+    #inside = urwid.AttrMap(div, 'inside')
+    txt = urwid.Text(('banner', u" Hello World "), align='center')
+    streak = urwid.AttrMap(txt, 'headings')
+    pile = loop.widget.base_widget # .base_widget skips the decorations
+    pile.contents.append((streak, pile.options()))
+
+    return loop
+
+
+
+###############################################################################
+LOOP = None
+
+def update_time(start_time):
+    elapsed = time.time() - start_time
+    #print("update %d" % elapsed)
+    #print("%s" % LOOP)
+    txt = urwid.Text(('banner', u" %d elapsed " % elapsed), align='center')
+    newstreak = urwid.AttrMap(txt, 'headings')
+    pile = LOOP.widget.base_widget # .base_widget skips the decorations
+    pile.contents.pop()
+    pile.contents.append((newstreak, pile.options()))
+    LOOP.draw_screen()
+
+
+###############################################################################
+
 if __name__ == '__main__':
     setup_zmq_block_listener(NewBlock.listener)
 
     l = task.LoopingCall(node_stat_update)
-    l.start(60.0)
+    l.start(3.0, now=False)
 
-    print("running reactor")
-    reactor.run()
+    LOOP = setup_urwid_loop()
+
+    start_time = time.time()
+
+    t = task.LoopingCall(update_time, start_time)
+    t.start(1.0, now=False)
+
+    LOOP.run()
