@@ -141,6 +141,12 @@ class StatUpdate(object):
         yield "fee estimate 3 blocks:     %0.2f sat/byte" % estimate_3
         estimate_6 = info['fee_estimate_6']['feerate'] * 100000.0
         yield "fee estimate 6 blocks:     %0.2f sat/byte" % estimate_6
+        estimate_12 = info['fee_estimate_12']['feerate'] * 100000.0
+        yield "fee estimate 12 blocks:    %0.2f sat/byte" % estimate_12
+        estimate_24 = info['fee_estimate_24']['feerate'] * 100000.0
+        yield "fee estimate 24 blocks:    %0.2f sat/byte" % estimate_24
+        estimate_48 = info['fee_estimate_48']['feerate'] * 100000.0
+        yield "fee estimate 48 blocks:    %0.2f sat/byte" % estimate_48
         estimate_100 = info['fee_estimate_100']['feerate'] * 100000.0
         yield "fee estimate 100 blocks:   %0.2f sat/byte" % estimate_100
         estimate_500 = info['fee_estimate_500']['feerate'] * 100000.0
@@ -158,6 +164,9 @@ class StatUpdate(object):
         info['fee_estimate_1'] = Bitcoind.estimatesmartfee(1)
         info['fee_estimate_3'] = Bitcoind.estimatesmartfee(3)
         info['fee_estimate_6'] = Bitcoind.estimatesmartfee(6)
+        info['fee_estimate_12'] = Bitcoind.estimatesmartfee(12)
+        info['fee_estimate_24'] = Bitcoind.estimatesmartfee(24)
+        info['fee_estimate_48'] = Bitcoind.estimatesmartfee(48)
         info['fee_estimate_100'] = Bitcoind.estimatesmartfee(100)
         info['fee_estimate_500'] = Bitcoind.estimatesmartfee(500)
         print(self._screen_output(info))
