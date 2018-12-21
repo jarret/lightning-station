@@ -1,6 +1,7 @@
 import time
 import requests
 import json
+from logger import log
 
 RPC_PORT = 8332
 RPC_USER = 'bitcoinrpc'
