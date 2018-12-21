@@ -1,3 +1,4 @@
+import time
 from twisted.internet import threads
 from txzmq import ZmqEndpoint, ZmqFactory, ZmqSubConnection
 
@@ -5,6 +6,7 @@ from bitcoinrpc import Bitcoind
 from gen_name import gen_block_name
 from phrases import get_phrase
 from tawker import Tawker
+from logger import log
 
 ################################################################################
 
@@ -18,7 +20,7 @@ class NewBlock(object):
     ###########################################################################
 
     def _speak_line_thread_func(height, name, phrase):
-        print("speak thread func")
+        log("speak thread func")
         tawker = Tawker()
         line = 'New block: %d. I dub thee "%s."' % (height, name)
         tawker.tawk(line)
@@ -27,21 +29,21 @@ class NewBlock(object):
         return line + " " + phrase
 
     def _speak_line_callback(self, result):
-        print("spoke line: %s" % result)
+        log("spoke line: %s" % result)
         self.new_block_queue.finish_block()
 
     def _speak_line_defer(self, info):
-        print("speak defer")
+        log("speak defer")
         d = threads.deferToThread(NewBlock._speak_line_thread_func,
                                   info['block_height'],
-                                  info['name'],
+                                  info['block_name'],
                                   info['block_phrase'])
         d.addCallback(self._speak_line_callback)
 
     ###########################################################################
 
     def _getblock_cmd_thread_func(block_hash):
-        print("getblock thread func")
+        log("getblock thread func")
         info = Bitcoind.getblock(block_hash)
         raw = Bitcoind.getblock_raw(block_hash)
         info['raw'] = raw
@@ -50,7 +52,7 @@ class NewBlock(object):
         return info
 
     def _getblock_cmd_callback(self, result):
-        print("getblock callback")
+        log("getblock callback")
         info = {'block_arrival_time': self.arrival_time,
                 'block_name':         result['name'],
                 'block_phrase':       result['phrase'],
@@ -64,7 +66,7 @@ class NewBlock(object):
         self.screen_ui.update_info(info)
 
     def _getblock_cmd_defer(self):
-        print("getblock defer")
+        log("getblock defer")
         d = threads.deferToThread(NewBlock._getblock_cmd_thread_func,
                                   self.block_hash)
         d.addCallback(self._getblock_cmd_callback)
@@ -72,7 +74,7 @@ class NewBlock(object):
     ###########################################################################
 
     def run(self):
-        print("run")
+        log("run")
         self._getblock_cmd_defer()
 
 ################################################################################
@@ -94,7 +96,7 @@ class NewBlockQueue(object):
         self.queue_running = False
 
     def finish_block(self):
-        print("finish")
+        log("finish")
         self.queue_running = False
         self._try_next()
 
@@ -104,7 +106,7 @@ class NewBlockQueue(object):
             new_block = self.new_block_queue.pop()
             new_block.run()
 
-    def listener(self):
+    def listener(self, message):
         new_block = NewBlock(self, message[1].hex(), self.screen_ui)
         self.new_block_queue.append(new_block)
         self._try_next()

@@ -1,5 +1,6 @@
 import urwid
 import json
+from logger import log
 
 
 COLS = 130
@@ -10,17 +11,18 @@ PALETTE = [
     ('streak', '', '', '', 'g50', '#60a'),
     ('inside', '', '', '', 'g38', '#808'),
     ('outside', '', '', '', 'g27', '#a06'),
-    ('bg', '', '', '', 'g7', '#d06'),
+    ('bg', '', '', '', 'g7', '#f60'),
     ('headings', 'white,underline', 'black', 'bold,underline'),
     ('body_text', 'dark cyan', 'light gray'),
           ]
 
 
 class ScreenUI(object):
-    def __init__(self, reactor):
+    def __init__(self, reactor, console):
         self.loop = self._setup_loop_background(reactor)
         self._setup_foreground()
         self.info = {}
+        self.console = console
 
     ###########################################################################
 
@@ -64,7 +66,10 @@ class ScreenUI(object):
 
     def update_info(self, new_info):
         self.info.update(new_info)
-        print(json.dumps(new_info, indent=1, sort_keys=True))
+        log(json.dumps(new_info, indent=1, sort_keys=True))
+        if self.console:
+            log(json.dumps(new_info, indent=1, sort_keys=True))
+            return
         for key, val in self.info.items():
             if key == 'elapsed':
                 self._update_elapsed(val)
@@ -72,8 +77,9 @@ class ScreenUI(object):
                 pass
             else:
                 pass
+        self.loop.draw_screen()
 
     ###########################################################################
 
-    def run(self):
+    def start_event_loop(self):
         self.loop.run()
