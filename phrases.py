@@ -7,10 +7,10 @@ PHRASES = [
 "Strong hands, long-term thinking.",
 "Keep calm and hodl on.",
 "Ring, Ring, Ring, Ring, Ring, Ring, Ring, Banana Phone!",
-"I'm having a hard time holding these alligators down. Woo!.",
+"I'm having a hard time holding these alligators down.",
 "Don't buy Bitcoin. It's going to crash.",
 "No one uses Bitcoin anymore, the blocks are full.",
-"Vitalik Buterin is a blockchain genius.",
+"Everyone knows that Vitalik Buterin is the smartest person.",
 "Don't buy Bitcoin. It has no intrinsic value.",
 "Don't buy Bitcoin. It is in a death spiral.",
 "Don't buy Bitcoin. It is a passing fad.",
@@ -18,6 +18,9 @@ PHRASES = [
 "Bitcoin is legacy technology.",
 "Bitcoin is a ponzi scheme.",
 "No such thing as a free lunch.",
+"Don't make me run. I'm full of chocolate.",
+"If you meet the Buddah on the road, kill him.",
+"Words have no meaning.",
 ]
 
 
