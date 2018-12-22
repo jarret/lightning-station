@@ -1,4 +1,5 @@
 import urwid
+import datetime
 import json
 import time
 from logger import log
@@ -63,6 +64,17 @@ class ScreenUI(object):
 
     ###########################################################################
 
+    def _fmt_timestamp(self, timestamp):
+        dt = datetime.datetime.utcfromtimestamp(timestamp)
+        return str(dt)
+
+    def _fmt_seconds(self, seconds):
+        m = seconds // 60
+        s = seconds % 60
+        return "%d minutes %d seconds" % (m, s)
+
+    ###########################################################################
+
     def _wrap_filler(self, widget, title):
         lb = urwid.LineBox(widget, title=title)
         f = urwid.Filler(lb)
@@ -111,8 +123,9 @@ class ScreenUI(object):
         bn = self._center_info_text("name: %s" %
                                      self.info['block_name'])
         p = self._center_info_text(self.info['block_phrase'])
-        at = self._center_info_text("arrival: %d" %
-                                     self.info['block_arrival_time'])
+        arrival = self.info['block_arrival_time']
+        at = self._center_info_text(
+            "arrival: %s" % self._fmt_timestamp(arrival))
         tx = self._center_info_text(
             "txs: {:,}".format(self.info['block_n_txes']))
 
@@ -121,12 +134,13 @@ class ScreenUI(object):
         w = self._center_info_text(
             "weight: {:,} bytes".format(self.info['block_weight']))
         t = self._center_info_text(
-            "timestamp: %d" % self.info['block_timestamp'])
+            "timestamp: %s" % self._fmt_timestamp(self.info['block_timestamp']))
         elapsed = time.time() - self.info['block_arrival_time']
-        e = self._center_info_text("elapsed: %d" % elapsed)
+        e = self._center_info_text("elapsed: %s" % self._fmt_seconds(elapsed))
 
         lines = [h, bn, p, at, tx, s, w, t, e]
         return self._wrap_filler(urwid.Pile(lines), "Block")
+
 
     ###########################################################################
 
@@ -161,4 +175,4 @@ class ScreenUI(object):
         self.loop.run()
 
     def stop(self):
-        self.loop.stop()
+        urwid.ExitMainLoop()
