@@ -21,6 +21,8 @@ PHRASES = [
 "Don't make me run. I'm full of chocolate.",
 "If you meet the Buddah on the road, kill him.",
 "Words have no meaning.",
+"Cypherpunks write code.",
+"A spectre is haunting the world, the spectre of crypto-anarchy.",
 ]
 
 
