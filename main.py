@@ -73,13 +73,13 @@ class PeriodicUpdates(object):
 
     def run(self):
         t = task.LoopingCall(self._update_time)
-        t.start(1.0, now=False)
+        t.start(1.0)
 
         l = task.LoopingCall(self._update_node_info)
-        l.start(2.0, now=False)
+        l.start(5.0)
 
         l = task.LoopingCall(self._update_host_info)
-        l.start(3.0, now=False)
+        l.start(20.0)
 
 
 ###############################################################################
@@ -111,7 +111,7 @@ if __name__ == '__main__':
                           Bitcoind.getblockchaininfo()['bestblockhash'])
     # start periodic timers
     pu = PeriodicUpdates(sui)
-    pu.run()
+    r.callLater(0.5, pu.run)
 
     try:
         if args.console:
