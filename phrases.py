@@ -23,6 +23,7 @@ PHRASES = [
 "Words have no meaning.",
 "Cypherpunks write code.",
 "A spectre is haunting the world, the spectre of crypto-anarchy.",
+"Your beard is weird.",
 ]
 
 

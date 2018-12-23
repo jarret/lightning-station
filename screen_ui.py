@@ -169,8 +169,10 @@ class ScreenUI(object):
             "Net Send: {:,} bytes/s".format(self.info['net_send']))
         r = self._center_info_text(
             "Net Recv: {:,} bytes/s".format(self.info['net_recv']))
+        d = self._center_info_text(
+            "Blockchain Dir: {:,} bytes".format(self.info['dir_size']))
         c = self._center_info_text("CPU Usage:")
-        lines = [t, p, s, r, c]
+        lines = [t, p, s, r, d, c]
         for cpu in self.info['cpu_pct']:
             lines.append(self._progress_bar('used', 'free', cpu))
         return self._wrap_filler(urwid.Pile(lines), "System Resources")
