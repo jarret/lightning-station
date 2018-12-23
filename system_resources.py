@@ -6,6 +6,7 @@ from twisted.internet import threads
 
 INTERVAL = 2.0
 PATH = "/home/jarret/bitcoind-run/"
+DEVICE = 'sda'
 
 class SystemResources(object):
     def __init__(self, reactor, screen_ui):
@@ -35,11 +36,19 @@ class SystemResources(object):
         #sr['mem_available'] = vm.available
         sr['mem_used_pct'] = ((1.0 - (float(vm.available) / float(vm.total))) *
                               100.0)
-        start_io = psutil.net_io_counters()
+        start_disk = psutil.disk_io_counters(perdisk=True)[DEVICE]
+        start_net = psutil.net_io_counters()
         sr['cpu_pct'] = psutil.cpu_percent(interval=INTERVAL, percpu=True)
-        end_io = psutil.net_io_counters()
-        send = int((end_io.bytes_sent - start_io.bytes_sent) / INTERVAL)
-        recv = int((end_io.bytes_recv - start_io.bytes_recv) / INTERVAL)
+        sr['cpu_pct'].sort()
+        sr['cpu_pct'].reverse()
+        end_disk = psutil.disk_io_counters(perdisk=True)[DEVICE]
+        end_net = psutil.net_io_counters()
+        read = int((end_disk.read_bytes - start_disk.read_bytes) / INTERVAL)
+        write = int((end_disk.write_bytes - start_disk.write_bytes) / INTERVAL)
+        sr['disk_read'] = read
+        sr['disk_write'] = write
+        send = int((end_net.bytes_sent - start_net.bytes_sent) / INTERVAL)
+        recv = int((end_net.bytes_recv - start_net.bytes_recv) / INTERVAL)
         sr['net_send'] = send
         sr['net_recv'] = recv
         sr['dir_size'] = SystemResources.sum_dir_size(PATH)
