@@ -32,7 +32,7 @@ class LsWsServerProtocol(WebSocketServerProtocol):
 
         self.tally += 1
         self.screen_ui.update_info({"ws_tally": self.tally})
-        self.sendMessage(payload, isBinary)
+#        self.sendMessage(payload, isBinary)
 
     def onClose(self, wasClean, code, reason):
         log("WebSocket connection closed: {0}".format(reason))

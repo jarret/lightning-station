@@ -1,58 +1,179 @@
 <!DOCTYPE html>
 <html>
-   <head>
-      <script type="text/javascript">
-         var socket = null;
-         var isopen = false;
-         window.onload = function() {
-            socket = new WebSocket("ws://127.0.0.1:9000");
-            socket.binaryType = "arraybuffer";
-            socket.onopen = function() {
-               console.log("Connected!");
-               isopen = true;
-            }
-            socket.onmessage = function(e) {
-               if (typeof e.data == "string") {
-                  console.log("Text message received: " + e.data);
-               } else {
-                  var arr = new Uint8Array(e.data);
-                  var hex = '';
-                  for (var i = 0; i < arr.length; i++) {
-                     hex += ('00' + arr[i].toString(16)).substr(-2);
-                  }
-                  console.log("Binary message received: " + hex);
-               }
-            }
-            socket.onclose = function(e) {
-               console.log("Connection closed.");
-               socket = null;
-               isopen = false;
-            }
-         };
-         function sendText() {
-            if (isopen) {
-               socket.send("Hello, world!");
-               console.log("Text message sent.");
+<head>
+<style>
+    div {
+    }
+    form {
+    }
+</style>
+</head>
+<body>
+    <center>
+    <div id="eink-display"></div>
+    <hr>
+    <div id="buttons"></div>
+    </center>
+</body>
+
+<script type="text/javascript">
+
+var AppSocket;
+var TwoDeeDraw;
+
+const WIDTH = 300;
+const HEIGHT = 400;
+
+const PX_SIZE = 1;
+
+function DrawColor(ctx, x, y, color) {
+    ctx.fillStyle = color;
+
+    lx = (PX_SIZE * x);
+    ly = (PX_SIZE * HEIGHT) - (PX_SIZE * (y + 1));
+
+    ctx.fillRect(lx, ly, PX_SIZE, PX_SIZE);
+}
+
+function CreateCanvas() {
+    t = document.getElementById("eink-display");
+    c = document.createElement("canvas");
+    c.setAttribute("id", "myCanvas")
+    c.setAttribute("width", WIDTH * PX_SIZE);
+    c.setAttribute("height", HEIGHT * PX_SIZE);
+    c.setAttribute("style", "border:1px solid #000000;");
+    t.appendChild(c);
+    return c;
+}
+
+function CreateEink() {
+    var canvas = CreateCanvas(WIDTH, HEIGHT);
+    TwoDeeDraw = canvas.getContext("2d");
+
+    for (var y = (HEIGHT - 1); y >= 0; y--) {
+        for (var x = 0; x < WIDTH; x++) {
+            if (x == y) {
+                DrawColor(TwoDeeDraw, x, y, "#ffffff");
             } else {
-               console.log("Connection not opened.")
+                DrawColor(TwoDeeDraw, x, y, "#000000");
             }
-         };
-         function sendBinary() {
-            if (isopen) {
-               var buf = new ArrayBuffer(32);
-               var arr = new Uint8Array(buf);
-               for (i = 0; i < arr.length; ++i) arr[i] = i;
-               socket.send(buf);
-               console.log("Binary message sent.");
+        }
+    }
+}
+
+function SendBinary(val) {
+    var buf = new ArrayBuffer(1);
+    var arr = new Uint8Array(buf);
+    arr[0] = val;
+    AppSocket.send(buf);
+}
+
+function SendLeft() {
+    SendBinary(0x00);
+}
+
+function SendRight() {
+    SendBinary(0x01);
+}
+
+
+function CreateButtons() {
+    var buttons = document.getElementById("buttons");
+    para = document.createElement("p");
+
+    left = document.createElement("button");
+    left_name = document.createTextNode("left");
+    left.appendChild(left_name);
+    left.onclick = function() {
+        console.log("left");
+        SendLeft();
+    }
+    para.appendChild(left);
+    right = document.createElement("button");
+    right_name = document.createTextNode("right");
+    right.appendChild(right_name);
+    right.onclick = function() {
+        console.log("right");
+        SendRight();
+    }
+    para.appendChild(right);
+
+    buttons.appendChild(para);
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+CreateEink();
+CreateButtons();
+
+//////////////////////////////////////////////////////////////////////////////
+
+function buf2hex(buffer) {
+    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+}
+
+
+function HandleNotification(ab) {
+    console.log("herpaderp: " + buf2hex(ab));
+    var bytes = new Uint8Array(ab);
+
+    var i = 0;
+    for (var y = 0; y < HEIGHT; y++) {
+        for (var x = 0; x < WIDTH; x++) {
+            //console.log(bytes[i]);
+            if (bytes[i] == 0xff) {
+                DrawColor(TwoDeeDraw, x, y, "#ffffff");
             } else {
-               console.log("Connection not opened.")
+                DrawColor(TwoDeeDraw, x, y, "#000000");
             }
-         };
-      </script>
-   </head>
-   <body>
-      <p>Open your browser's JavaScript console to see what's happening (hit F12).</p>
-      <button onclick='sendText();'>Send Text Message</button>
-      <button onclick='sendBinary();'>Send Binary Message</button>
-   </body>
+            i++;
+        }
+    }
+}
+
+function HandleBinary(data) {
+    var reader = new FileReader();
+    var ab = null;
+
+    reader.onload = function(event) {
+        HandleNotification(event.target.result);
+    };
+    reader.readAsArrayBuffer(data);
+}
+
+function PrintBinary(data) {
+    var reader = new FileReader();
+    reader.readAsText(data);
+    txt = reader.result;
+    console.log(txt);
+}
+
+function ProcessReceivedBinaryNotification(event) {
+    PrintBinary(event.data);
+    HandleBinary(event.data);
+}
+
+function ProcessReceivedNotification(event) {
+
+    if (event.data instanceof Blob) {
+        ProcessReceivedBinaryNotification(event)
+    } else {
+        console.log("text notification: " + event);
+    }
+}
+
+function ConnectUponLoad() {
+    // create websocket instance
+    AppSocket = new WebSocket("ws://127.0.0.1:9000");
+    // add event listener reacting when message is received
+    AppSocket.onmessage = ProcessReceivedNotification
+}
+
+window.addEventListener("load", ConnectUponLoad());
+
+//////////////////////////////////////////////////////////////////////////////
+
+
+</script>
 </html>
