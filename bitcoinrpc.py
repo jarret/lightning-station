@@ -1,6 +1,7 @@
 import time
 import requests
 import json
+from logger import log
 
 RPC_PORT = 8332
 RPC_USER = 'bitcoinrpc'
@@ -15,6 +16,7 @@ class RPCHost(object):
         self._session = requests.Session()
         self._url = URL
         self._headers = {'content-type': 'application/json'}
+
     def call(self, rpcMethod, *params):
         payload = json.dumps({"method": rpcMethod,
                               "params": list(params), "jsonrpc": "2.0"})
@@ -30,13 +32,13 @@ class RPCHost(object):
                     raise Exception("Failed to connect for remote procedure "
                                     "call.")
                 hadFailedConnections = True
-                print("Couldn't connect for remote procedure call, will "
-                      "sleep for five seconds and then try again ({} more "
-                      "tries)".format(tries))
+                log("Couldn't connect for remote procedure call, will "
+                    "sleep for five seconds and then try again ({} more "
+                    "tries)".format(tries))
                 time.sleep(10)
             else:
                 if hadConnectionFailures:
-                    print('Connected for remote procedure call after retry.')
+                    log('Connected for remote procedure call after retry.')
                 break
         if not response.status_code in (200, 500):
             raise Exception('RPC connection failure: ' +
@@ -50,7 +52,37 @@ class RPCHost(object):
 ###############################################################################
 
 
-def get_block_height(block_hash):
-    host = RPCHost()
-    info = host.call('getblock', block_hash)
-    return info['height']
+class Bitcoind(object):
+    def getblock(block_hash):
+        host = RPCHost()
+        return host.call('getblock', block_hash)
+
+    def getblock_raw(block_hash):
+        host = RPCHost()
+        return host.call('getblock', block_hash, 0)
+
+    def getmempoolinfo():
+        host = RPCHost()
+        return host.call('getmempoolinfo')
+
+    def getblockchaininfo():
+        host = RPCHost()
+        return host.call('getblockchaininfo')
+
+    def getnetworkinfo():
+        host = RPCHost()
+        return host.call('getnetworkinfo')
+
+    def estimatesmartfee(blocks):
+        host = RPCHost()
+        return host.call('estimatesmartfee', blocks)
+
+    def estimatesmartfee_eco(blocks):
+        host = RPCHost()
+        return host.call('estimatesmartfee', blocks, "ECONOMICAL")
+
+    def get_parsed_tx(txid):
+        host = RPCHost()
+        raw = host.call('getrawtransaction', txid)
+        return host.call('decoderawtransaction', raw)
+
