@@ -4,14 +4,18 @@ import time
 import argparse
 import logging
 
+
 from twisted.internet import reactor, task
 
 from ip_address import get_ip_address
 from screen_ui import ScreenUI
 from bitcoinrpc import Bitcoind
 from logger import log, setup_log
-
+from serve_web import ServeWeb
+from serve_websocket import ServeWebsocket
 from block_listener import NewBlockQueue
+from eink_ui import EinkUI
+from system_resources import SystemResources
 
 
 ###############################################################################
@@ -24,27 +28,25 @@ class NodeInfo(object):
         rate = Bitcoind.estimatesmartfee(block)['feerate']
         return rate * 100000.0
 
+    def get_fee_rate_eco(block):
+        rate = Bitcoind.estimatesmartfee_eco(block)['feerate']
+        return rate * 100000.0
+
     def fetch():
         mempool_info = Bitcoind.getmempoolinfo()
         mempool_pct = ((mempool_info['usage'] / mempool_info['maxmempool']) *
                        100.0)
         network_info = Bitcoind.getnetworkinfo()
-        fee_estimate = {1:   Bitcoind.estimatesmartfee(1)['feerate'],
-                        3:   Bitcoind.estimatesmartfee(3)['feerate'],
-                        6:   Bitcoind.estimatesmartfee(6)['feerate'],
-                        12:  Bitcoind.estimatesmartfee(12)['feerate'],
-                        24:  Bitcoind.estimatesmartfee(24)['feerate'],
-                        48:  Bitcoind.estimatesmartfee(48)['feerate'],
-                        100: Bitcoind.estimatesmartfee(100)['feerate'],
-                        500: Bitcoind.estimatesmartfee(500)['feerate']
-                       }
         fee_estimate = {b: NodeInfo.get_fee_rate(b) for b in FEE_RATE_BLOCKS}
-        return {'mempool_txs':     mempool_info['size'],
-                'mempool_bytes':   mempool_info['usage'],
-                'mempool_percent': mempool_pct,
-                'net_connections': network_info['connections'],
-                'net_version':     network_info['subversion'],
-                'fee_estimate':    fee_estimate,
+        fee_estimate_eco = {b: NodeInfo.get_fee_rate_eco(b) for b in
+                            FEE_RATE_BLOCKS}
+        return {'mempool_txs':      mempool_info['size'],
+                'mempool_bytes':    mempool_info['usage'],
+                'mempool_percent':  mempool_pct,
+                'net_connections':  network_info['connections'],
+                'net_version':      network_info['subversion'],
+                'fee_estimate':     fee_estimate,
+                'fee_estimate_eco': fee_estimate_eco,
                }
 
 class HostInfo(object):
@@ -112,6 +114,17 @@ if __name__ == '__main__':
     # start periodic timers
     pu = PeriodicUpdates(sui)
     r.callLater(0.5, pu.run)
+
+    sr = SystemResources(r, sui)
+    sr.run()
+
+    eui = EinkUI()
+
+    sw = ServeWeb(r)
+    sw.run()
+
+    sws = ServeWebsocket(r, sui, eui)
+    sws.run()
 
     try:
         if args.console:

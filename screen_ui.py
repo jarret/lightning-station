@@ -88,7 +88,18 @@ class ScreenUI(object):
             estimate = self.info['fee_estimate'][block]
             s = "%d: %0.2f sat/byte" % (block, estimate)
             lines.append(self._center_info_text(s))
-        return self._wrap_filler(urwid.Pile(lines), "Fee Estimates")
+        return self._wrap_filler(urwid.Pile(lines),
+                                 "Conservative Fee Estimates")
+
+    def _fee_estimate_eco_widget(self):
+        if 'fee_estimate_eco' not in self.info:
+            return self._wrap_filler(urwid.Pile([]), "(no eco fee estimates)")
+        lines = []
+        for block in sorted(self.info['fee_estimate_eco'].keys()):
+            estimate = self.info['fee_estimate_eco'][block]
+            s = "%d: %0.2f sat/byte" % (block, estimate)
+            lines.append(self._center_info_text(s))
+        return self._wrap_filler(urwid.Pile(lines), "Econmical Fee Estimates")
 
     def _mempool_widget(self):
         if 'mempool_txs' not in self.info:
@@ -141,17 +152,42 @@ class ScreenUI(object):
         lines = [h, bn, p, at, tx, s, w, t, e]
         return self._wrap_filler(urwid.Pile(lines), "Block")
 
+    def _websocket_widget(self):
+        if 'ws_tally' not in self.info:
+            return self._wrap_filler(urwid.Pile([]), "(no websocket data)")
+        t = self._center_info_text("tally: %d" % self.info['ws_tally'])
+        lines = [t]
+        return self._wrap_filler(urwid.Pile(lines), "Websocket")
+
+    def _sys_res_widget(self):
+        if 'mem_total' not in self.info:
+            return self._wrap_filler(urwid.Pile([]), "(no sys res data)")
+        t = self._center_info_text(
+            "Mem Total: {:,} bytes".format(self.info['mem_total']))
+        p = self._progress_bar('used', 'free', self.info['mem_used_pct'])
+        s = self._center_info_text(
+            "Net Send: {:,} bytes/s".format(self.info['net_send']))
+        r = self._center_info_text(
+            "Net Recv: {:,} bytes/s".format(self.info['net_recv']))
+        c = self._center_info_text("CPU Usage:")
+        lines = [t, p, s, r, c]
+        for cpu in self.info['cpu_pct']:
+            lines.append(self._progress_bar('used', 'free', cpu))
+        return self._wrap_filler(urwid.Pile(lines), "System Resources")
 
     ###########################################################################
 
     def _build_widgets(self):
         fee = self._fee_estimate_widget()
+        eco = self._fee_estimate_eco_widget()
         mem = self._mempool_widget()
         net = self._network_widget()
         blk = self._block_widget()
+        ws = self._websocket_widget()
+        sr = self._sys_res_widget()
 
-        col1 = urwid.Pile([fee, mem])
-        col2 = urwid.Pile([net, blk])
+        col1 = urwid.Pile([ws, fee, eco, mem])
+        col2 = urwid.Pile([net, blk, sr])
         col3 = urwid.AttrMap(urwid.SolidFill(), "background")
         cols = urwid.Columns([col1, col2, col3])
 

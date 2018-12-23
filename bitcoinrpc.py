@@ -77,6 +77,10 @@ class Bitcoind(object):
         host = RPCHost()
         return host.call('estimatesmartfee', blocks)
 
+    def estimatesmartfee_eco(blocks):
+        host = RPCHost()
+        return host.call('estimatesmartfee', blocks, "ECONOMICAL")
+
     def get_parsed_tx(txid):
         host = RPCHost()
         raw = host.call('getrawtransaction', txid)
