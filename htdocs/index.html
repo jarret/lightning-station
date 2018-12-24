@@ -30,7 +30,8 @@ function DrawColor(ctx, x, y, color) {
     ctx.fillStyle = color;
 
     lx = (PX_SIZE * x);
-    ly = (PX_SIZE * HEIGHT) - (PX_SIZE * (y + 1));
+    //ly = (PX_SIZE * HEIGHT) - (PX_SIZE * (y + 1));
+    ly = (PX_SIZE * y);
 
     ctx.fillRect(lx, ly, PX_SIZE, PX_SIZE);
 }
@@ -50,8 +51,8 @@ function CreateEink() {
     var canvas = CreateCanvas(WIDTH, HEIGHT);
     TwoDeeDraw = canvas.getContext("2d");
 
-    for (var y = (HEIGHT - 1); y >= 0; y--) {
-        for (var x = 0; x < WIDTH; x++) {
+    for (var x = 0; x < WIDTH; x++) {
+        for (var y = 0; y < HEIGHT; y++) {
             if (x == y) {
                 DrawColor(TwoDeeDraw, x, y, "#ffffff");
             } else {
