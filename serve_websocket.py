@@ -14,6 +14,7 @@ class LsWsServerProtocol(WebSocketServerProtocol):
         self.tally = 0
         self.screen_ui = self.server.screen_ui
         self.eink_ui = self.server.eink_ui
+        self.music_select = self.server.music_select
         self.audio_player = AudioPlayer()
 
     ###########################################################################
@@ -23,7 +24,8 @@ class LsWsServerProtocol(WebSocketServerProtocol):
 
     def onOpen(self):
         log("WebSocket connection open.")
-        self.sendMessage(self.eink_ui.get_display_bytes(), True)
+        next_song = self.music_select.get_next_song()
+        self.eink_ui.generate_bytes_defer(next_song, self.screen_generated_cb)
 
     def onMessage(self, payload, isBinary):
         if isBinary:
@@ -37,18 +39,25 @@ class LsWsServerProtocol(WebSocketServerProtocol):
         log("payload: %s" % payload)
         self.audio_player.play_sound_effect('button')
 
+        next_song = self.music_select.get_next_song()
+        self.eink_ui.generate_bytes_defer(next_song, self.screen_generated_cb)
+
+    def screen_generated_cb(self, display_bytes):
+        self.sendMessage(display_bytes, True)
+
     def onClose(self, wasClean, code, reason):
         log("WebSocket connection closed: {0}".format(reason))
 
 ###############################################################################
 
 class LsWsServerFactory(WebSocketServerFactory):
-    def __init__(self, ws_url, screen_ui, eink_ui):
+    def __init__(self, ws_url, screen_ui, eink_ui, music_select):
         super().__init__(ws_url)
         self.protocol = LsWsServerProtocol
         self.protocol.server = self
         self.screen_ui = screen_ui
         self.eink_ui = eink_ui
+        self.music_select = music_select
 
 
 ###############################################################################
@@ -56,10 +65,11 @@ class LsWsServerFactory(WebSocketServerFactory):
 PORT = 9000
 
 class ServeWebsocket(object):
-    def __init__(self, reactor, screen_ui, eink_ui):
+    def __init__(self, reactor, screen_ui, eink_ui, music_select):
         self.reactor = reactor
         self.screen_ui = screen_ui
         self.eink_ui = eink_ui
+        self.music_select = music_select
         self.reactor.callLater(0.5, self.init_ws_info)
 
     def init_ws_info(self):
@@ -67,5 +77,6 @@ class ServeWebsocket(object):
 
     def run(self):
         factory = LsWsServerFactory(u"ws://127.0.0.1:%d" % PORT,
-                                    self.screen_ui, self.eink_ui)
+                                    self.screen_ui, self.eink_ui,
+                                    self.music_select)
         self.reactor.listenTCP(PORT, factory)

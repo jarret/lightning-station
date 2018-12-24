@@ -17,6 +17,7 @@ from block_listener import NewBlockQueue
 from eink_ui import EinkUI
 from system_resources import SystemResources
 from audio_player import AudioPlayer
+from music_select import MusicSelect
 
 
 ###############################################################################
@@ -124,7 +125,7 @@ if __name__ == '__main__':
     sw = ServeWeb(r)
     sw.run()
 
-    sws = ServeWebsocket(r, sui, eui)
+    sws = ServeWebsocket(r, sui, eui, MusicSelect("/home/jarret/audio/"))
     sws.run()
 
     try:

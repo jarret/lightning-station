@@ -1,63 +1,65 @@
-
-import qrcode
+import os
 import io
+import qrcode
+
+from twisted.internet import threads
 
 from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
 
 from logger import log
 
 WIDTH = 300
 HEIGHT = 400
 
+FONTS = {
+    'price':  'fonts/FreeSans.ttf',
+}
+for p in FONTS.values():
+    path = os.path.abspath(p)
+    assert os.path.exists(p), "no file? %s" % path
 
 
 MOCK_BOLT11 = "lnbc50n1pdm373mpp50hlcjdrcm9u3qqqs4a926g63d3t5qwyndytqjjgknskuvmd9kc2sdz2d4shyapwwpujq6twwehkjcm9ypnx7u3qxys8q6tcv4k8xtpqw4ek2ujlwd68y6twvuazqg3zyqxqzjcuvzstexcj4zcz7ldtkwz8t5pdsghauyhkdqdxccx8ts3ta023xqzwgwxuvlu9eehh97d0qcu9k5a4u2glenrekp7w9sswydl4hneyjqqzkxf54"
 
 class EinkUI(object):
-    def __init__(self):
-        self.display = bytearray(WIDTH * HEIGHT)
-        b = self.gen_qrcode_bytes()
-        self.display[0:len(b)] = b
-
-    #def _set_pixel(self, x, y, val):
-    #    byte = (x * HEIGHT) + y
-    #    self.display[byte] = val
-#
-#    def set_checker_pattern(self):
-#        last = 0x00
-#        for x in range(WIDTH):
-#            for y in range(HEIGHT):
-#                log("hello")
-#                if last == 0x00:
-#                    self._set_pixel(x, y, 0xff)
-#                    last = 0xff
-#                else:
-#                    self._set_pixel(x, y, 0x00)
-#                    last = 0x00
-#            if last == 0x00:
-#                last = 0xff
-#            else:
-#                last = 0x00
-
-
-    def gen_qrcode_bytes(self):
+    def qrcode_image(bolt11):
         qr = qrcode.QRCode(version=1,
                            error_correction=qrcode.constants.ERROR_CORRECT_L)
-        qr.add_data(MOCK_BOLT11)
+        qr.add_data(bolt11)
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white")
+        return img.resize((WIDTH, WIDTH), Image.NEAREST)
 
-        img = img.resize((300, 300), Image.NEAREST)
-        l = img.convert("L")
-        data = bytearray(l.getdata())
+    def add_text(img, price, line1, line2):
+        draw = ImageDraw.Draw(img)
+        # font = ImageFont.truetype(<font-file>, <font-size>)
+        font = ImageFont.truetype(FONTS['price'], 20)
+        # draw.text((x, y),"Sample Text",(r,g,b))
+        price_text = "%d satoshis" % price
+        draw.text((20, 10), price_text, 0x00, font=font)
+        draw.text((20, 335), line1, 0x00, font=font)
+        draw.text((20, 360), line2, 0x00, font=font)
+
+    def gen_screen_bytes(bolt11, price, line1, line2):
+        simg = Image.new("L", (WIDTH, HEIGHT), color=0xff)
+        qimg = EinkUI.qrcode_image(bolt11)
+        simg.paste(qimg, (0, 35))
+        EinkUI.add_text(simg, price, line1, line2)
+        l = simg.convert("L")
+        data = bytes(l.getdata())
         return data
 
-        #imgByteArr = io.BytesIO()
-        #img.save(imgByteArr, format='PNG')
-        #bs = imgByteArr.getvalue()
-        #log(bs)
-        #return bs
+    ###########################################################################
+
+    def _generate_thread_func(bolt11, price, line1, line2):
+        return EinkUI.gen_screen_bytes(bolt11, price, line1, line2)
+
+    def generate_bytes_defer(self, song, callback):
+        d = threads.deferToThread(EinkUI._generate_thread_func,
+                                  song['bolt11'], song['price'], song['title'],
+                                  song['artist'])
+        d.addCallback(callback)
 
 
-    def get_display_bytes(self):
-        return bytes(self.display)

@@ -20,6 +20,8 @@ CMDS = [
     ['mpg123-pulse'],
 ]
 
+###############################################################################
+
 class AudioPlayer(object):
     def __init__(self):
         self.cmd = None
