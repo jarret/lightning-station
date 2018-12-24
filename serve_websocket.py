@@ -4,6 +4,7 @@ from autobahn.twisted.websocket import WebSocketServerProtocol
 from autobahn.twisted.websocket import WebSocketServerFactory
 
 from logger import log
+from audio_player import AudioPlayer
 
 
 
@@ -13,6 +14,7 @@ class LsWsServerProtocol(WebSocketServerProtocol):
         self.tally = 0
         self.screen_ui = self.server.screen_ui
         self.eink_ui = self.server.eink_ui
+        self.audio_player = AudioPlayer()
 
     ###########################################################################
 
@@ -32,7 +34,8 @@ class LsWsServerProtocol(WebSocketServerProtocol):
 
         self.tally += 1
         self.screen_ui.update_info({"ws_tally": self.tally})
-#        self.sendMessage(payload, isBinary)
+        log("payload: %s" % payload)
+        self.audio_player.play_sound_effect('button')
 
     def onClose(self, wasClean, code, reason):
         log("WebSocket connection closed: {0}".format(reason))

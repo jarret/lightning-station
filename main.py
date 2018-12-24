@@ -16,6 +16,7 @@ from serve_websocket import ServeWebsocket
 from block_listener import NewBlockQueue
 from eink_ui import EinkUI
 from system_resources import SystemResources
+from audio_player import AudioPlayer
 
 
 ###############################################################################
@@ -109,7 +110,7 @@ if __name__ == '__main__':
     # setup urwid screen output
     sui = ScreenUI(r, args.console)
     # listen on ZMQ for new blocks
-    queue = NewBlockQueue(r, sui,
+    queue = NewBlockQueue(r, sui, AudioPlayer(),
                           Bitcoind.getblockchaininfo()['bestblockhash'])
     # start periodic timers
     pu = PeriodicUpdates(sui)

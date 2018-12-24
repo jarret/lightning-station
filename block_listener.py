@@ -11,11 +11,12 @@ from logger import log
 ################################################################################
 
 class NewBlock(object):
-    def __init__(self, new_block_queue, block_hash, screen_ui):
+    def __init__(self, new_block_queue, block_hash, screen_ui, audio_player):
         self.new_block_queue = new_block_queue
         self.block_hash = block_hash
         self.screen_ui = screen_ui
         self.arrival_time = time.time()
+        self.audio_player = audio_player
 
     ###########################################################################
 
@@ -23,6 +24,7 @@ class NewBlock(object):
         log("speak thread func")
         tawker = Tawker()
         line = 'New block: %d. I dub thee "%s."' % (height, name)
+        time.sleep(0.5)
         tawker.tawk(line)
         time.sleep(0.3)
         tawker.tawk(phrase)
@@ -39,6 +41,7 @@ class NewBlock(object):
                                   info['block_name'],
                                   info['block_phrase'])
         d.addCallback(self._speak_line_callback)
+        self.audio_player.play_sound_effect('block')
 
     ###########################################################################
 
@@ -84,7 +87,7 @@ class NewBlockQueue(object):
         They are queued up for handling since they can arrive faster than
         they are able to be handled.
     """
-    def __init__(self, reactor, screen_ui, first_block_hash):
+    def __init__(self, reactor, screen_ui, audio_player, first_block_hash):
         f = ZmqFactory()
         f.reactor = reactor
         e = ZmqEndpoint("connect", "tcp://127.0.0.1:28332")
@@ -94,8 +97,10 @@ class NewBlockQueue(object):
         self.screen_ui = screen_ui
         self.new_block_queue = []
         self.queue_running = False
+        self.audio_player = audio_player
 
-        new_block = NewBlock(self, first_block_hash, self.screen_ui)
+        new_block = NewBlock(self, first_block_hash, self.screen_ui,
+                             audio_player)
         self.new_block_queue.append(new_block)
         self._try_next()
 
@@ -111,6 +116,7 @@ class NewBlockQueue(object):
             new_block.run()
 
     def listener(self, message):
-        new_block = NewBlock(self, message[1].hex(), self.screen_ui)
+        new_block = NewBlock(self, message[1].hex(), self.screen_ui,
+                             self.audio_player)
         self.new_block_queue.append(new_block)
         self._try_next()
