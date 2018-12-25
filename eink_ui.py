@@ -37,7 +37,7 @@ class EinkUI(object):
         # font = ImageFont.truetype(<font-file>, <font-size>)
         font = ImageFont.truetype(FONTS['price'], 20)
         # draw.text((x, y),"Sample Text",(r,g,b))
-        price_text = "%d satoshis" % price
+        price_text = "%0.03f satoshis" % price
         draw.text((20, 10), price_text, 0x00, font=font)
         draw.text((20, 335), line1, 0x00, font=font)
         draw.text((20, 360), line2, 0x00, font=font)
