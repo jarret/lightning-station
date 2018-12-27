@@ -9,9 +9,12 @@ from music_select import MusicSelect
 from audio_player import AudioPlayer
 from logging import log
 
-EXPIRY = 60 * 60
+EXPIRY = 60 * 60 * 24 # 24 hours
+
+SECONDS_TO_EXPIRY = 30
 
 CHECK_PERIOD = 1.0
+
 
 class Daemon(object):
     def __init__(self, daemon_rpc):
@@ -34,6 +37,7 @@ class Daemon(object):
         print(json.dumps(result, indent=1, sort_keys=True))
         return result
 
+###############################################################################
 
 class Jukebox(object):
     def __init__(self, reactor, music_dir, daemon_rpc):
@@ -41,63 +45,108 @@ class Jukebox(object):
         self.reactor = reactor
         self.music_select = MusicSelect(music_dir)
         self.audio_player = AudioPlayer()
-        self.daemon = Daemon(daemon_rpc)
+        self.daemon_rpc = daemon_rpc
         self._init_invoices()
 
-###############################################################################
+    ###########################################################################
 
-    def _gen_new_label(self):
+    def _gen_new_label():
         label_bytes = uuid.uuid4().bytes
         label_str = b64encode(label_bytes).decode('utf8')
         return label_str
 
-    def _init_invoice(self, song):
-        msatoshis = int(song['price'] * 1000)
-        label = self._gen_new_label()
-        description = "play: %s - %s" % (song['title'], song['artist'])
-        result = self.daemon.invoice_c_lightning(msatoshis, label, description)
-        song['bolt11'] = result['bolt11']
-        song['expires'] = result['expires']
-        song['label'] = label
+    def _invoice(daemon, price, title, artist):
+        label = Jukebox._gen_new_label()
+        msatoshis = int(price * 1000)
+        description = "play: %s - %s" % title, artist)
+        result = daemon.invoice_c_lightning(msatoshis, label, description)
+        return result['bolt11'], result['expires'], label
+
+    ###########################################################################
 
     def _init_invoices(self):
+        daemon = Daemon(self.daemon_rpc)
         for s in self.music_select.iter_songs():
-            self._init_invoice(s)
+            bolt11, expires, label = Jukebox._invoice(daemon, s['price'],
+                                                      s['title'],
+                                                      s['artist'])
+            s['bolt11'] = bolt11
+            s['expires'] = expires
+            s['label'] = label
 
     def browse_next_song(self):
         return self.music_select.get_next_song()
 
     ###########################################################################
 
-    def _expire_check(invoice):
+    def _expire_check(labels_to_check, invoice):
+        if not invoice['label'] in labels_to_check:
+            return False
+        if invoice['state'] == 'paid':
+            return False
+        if invoice['state'] == 'expired':
+            return True
+        # treat uppaid but near expired as expired
+        current_time = int(time.time())
+        return (current_time + SECONDS_TO_EXPIRY) > invoice['expiry']
 
-    def _check_paid_thread_func(labels):
-        invoices = self.daemon.get_c_lightning_invoices()
-        paid_labels = set(i['label'] for i in invoices if i['state'] == 'paid')
-        expired_labels = set(i['label'] for i in invoices if
-                             Jukebox._expired_check(i))
-        # TODO spin new invoices, deleted paid
-        paid = list(set(labels).intersection(paid_labels))
+    def _paid_check(labels_to_check, invoice):
+        if not invoice['label'] in labels_to_check:
+            return False
+        return invoice['state'] == 'paid'
 
-        replacements = {}
+    def _iter_renews(daemon, thread_data, paid, expired):
+        for label, title, artist, price in thread_data:
+            if (label in paid) or (label in expired):
+                old_label = label
+                bolt11, expires, new_label = Jukebox._invoice(daemon, price,
+                                                              title, artist)
+                yield (old_label, new_label, bolt11, expires)
 
-        return {'paid':    paid,
-                'replace': replacements}
+    def _check_paid_thread_func(daemon_rpc, thread_data):
+        daemon = Daemon(daemon_rpc)
+        invs = daemon.get_c_lightning_invoices()
+        labels_to_check = set(d[0] for d in thread_data)
+        paid = set(i['label'] for i in invs if
+                   Jukebox_paid_check(labels_to_check, i))
+        expired = set(i['label'] for i in invs if
+                      Jukebox._expired_check(labels_to_check, i))
+
+        renews = set(Jukebox._iter_renews(daemon, thread_data, paid, expired))
+        for l in iter(paid):
+            daemon.delete(l)
+        for l in iter(expired):
+            daemon.delete(l)
+        return (paid, renews)
 
     def _check_paid_callback(self, result):
-        paid_labels = result
+        paid, renews = result
         songs = {s['label']: s for s in self.music_select.iter_songs()}
-        for paid_label in paid_labels:
-            paid_song = songs[paid_label]
-            log(json.dumps(paid_song, sort_keys=True))
-            #TODO queue songs for playing
-            # display queued song list
+        for l in iter(paid):
+            if l not songs:
+                continue
+            log("QUEUE: %s" % s['path'])
+            # TODO:- implement queue
+            # TODO - kick off queue playing
 
+        for old_label, new_label, bolt11, expires in renews:
+            s = songs['old_label']
+            s['label'] = new_label
+            s['bolt11'] = bolt11
+            s['expires'] = expires
+
+        # TODO - renew websocket/UI clients
         self.reactor.callLater(CHECK_PERIOD, self._periodic_check)
 
+    def _thread_data(self, song):
+        # the info needed to check and renew invoices
+        return (song['label'], song['title'], song['artist'], song['price'])
+
     def _check_paid_defer(self):
-        labels = [s['label'] for s in self.music_select.iter_songs()]
-        d = thread.deferToThread(Jukebox._check_paid_thread_func, labels)
+        thread_data = [self._thread_data(s) for s in
+                       self.music_select.iter_songs()]
+        d = thread.deferToThread(Jukebox._check_paid_thread_func,
+                                 self.daemon_rpc, thread_data)
         d.addCallback(self._check_paid_callback)
 
     ###########################################################################
