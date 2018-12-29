@@ -55,8 +55,16 @@ class AudioPlayer(object):
     def play(self, path):
         self._play_defer(path)
 
+    def play_and_wait(self, path):
+        p = subprocess.Popen(self.cmd + [path], stderr=subprocess.DEVNULL,
+                             stdout=subprocess.DEVNULL)
+        p.wait()
+
     ###########################################################################
 
     def play_sound_effect(self, effect):
         path = SOUND_EFFECTS[effect]
         self.play(path)
+
+    def play_song(self, path):
+        self.play_and_wait(path)

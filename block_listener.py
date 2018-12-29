@@ -112,7 +112,7 @@ class NewBlockQueue(object):
     def _try_next(self):
         if (self.queue_running == False) and (len(self.new_block_queue) > 0):
             self.queue_running = True
-            new_block = self.new_block_queue.pop()
+            new_block = self.new_block_queue.pop(0)
             new_block.run()
 
     def listener(self, message):

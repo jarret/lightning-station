@@ -126,7 +126,7 @@ if __name__ == '__main__':
     sw = ServeWeb(r)
     sw.run()
 
-    j = Jukebox(r, "/home/jarret/audio/",
+    j = Jukebox(r, sui, "/home/jarret/audio/",
                 "/home/jarret/lightningd-run/lightning-dir/lightning-rpc")
     j.run()
 

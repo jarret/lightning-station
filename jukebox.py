@@ -32,7 +32,7 @@ class Daemon(object):
 
     def get_c_lightning_invoices(self):
         result = self.rpc.listinvoices()
-        log(json.dumps(result, indent=1, sort_keys=True))
+        #log(json.dumps(result, indent=1, sort_keys=True))
         return result
 
     def delete(self, label):
@@ -97,13 +97,72 @@ class MusicSelect(object):
 
 ###############################################################################
 
+class JukeboxQueue(object):
+    def __init__(self, screen_ui):
+        self.screen_ui = screen_ui
+        self.song_queue = []
+        self.queue_running = False
+        self.song_playing = None
+
+    ###########################################################################
+
+    def _play_song_thread_func(path):
+        a = AudioPlayer()
+        a.play_song(path)
+        return None
+
+    def _play_song_callback(self, result):
+        self._finish_playing_song()
+
+    def _play_song_defer(self, path):
+        d = threads.deferToThread(JukeboxQueue._play_song_thread_func, path)
+        d.addCallback(self._play_song_callback)
+
+    ###########################################################################
+
+    def _finish_playing_song(self):
+        self.queue_running = False
+        self.song_playing = None
+        self._try_next()
+        self._update_screen()
+
+    def _try_next(self):
+        if (self.queue_running == False) and (len(self.song_queue) > 0):
+            self.queue_running = True
+            song = self.song_queue.pop(0)
+            self.song_playing = song
+            self._play_song_defer(song['path'])
+
+    ###########################################################################
+
+    def _update_screen(self):
+        spt = self.song_playing['title'] if self.song_playing else None
+        spa = self.song_playing['artist'] if self.song_playing else None
+        info = {'song_playing_title':  spt,
+                'song_playing_artist': spa,
+                'queued_songs':        []}
+        for s in self.song_queue:
+            info['queued_songs'].append({'title':  s['title'],
+                                         'artist': s['artist']})
+        self.screen_ui.update_info(info)
+
+    def add_song(self, title, artist, path):
+        log("queued: %s %s %s" % (title, artist, path))
+        self.song_queue.append({'title':  title,
+                                'artist': artist,
+                                'path':   path})
+        self._try_next()
+        self._update_screen()
+
+###############################################################################
+
 class Jukebox(object):
-    def __init__(self, reactor, music_dir, daemon_rpc):
+    def __init__(self, reactor, screen_ui, music_dir, daemon_rpc):
         self.queue = []
         self.reactor = reactor
         self.music_select = MusicSelect(music_dir)
-        self.audio_player = AudioPlayer()
         self.daemon_rpc = daemon_rpc
+        self.jukebox_queue = JukeboxQueue(screen_ui)
         self._init_invoices()
 
     ###########################################################################
@@ -190,10 +249,9 @@ class Jukebox(object):
         for l in iter(paid):
             if l not in songs:
                 continue
-            log("QUEUE: %s" % songs[l]['path'])
-            # TODO - implement queue
-            # TODO - kick off queue playing
-            # TODO - update ui with queue/playing state
+            self.jukebox_queue.add_song(songs[l]['title'],
+                                        songs[l]['artist'],
+                                        songs[l]['path'])
 
         for old_label, new_label, bolt11, expires in renews:
             s = songs[old_label]

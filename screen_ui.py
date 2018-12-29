@@ -181,6 +181,41 @@ class ScreenUI(object):
             lines.append(self._progress_bar('used', 'free', cpu))
         return self._wrap_filler(urwid.Pile(lines), "System Resources")
 
+    def _song_playing_widget(self):
+        if 'song_playing_title' not in self.info:
+            return self._wrap_filler(urwid.Pile([]), "(no song playing)")
+        if not self.info['song_playing_title']:
+            return self._wrap_filler(urwid.Pile([]), "(no song playing)")
+        st = self._center_info_text(
+            "Title: %s" % self.info['song_playing_title'])
+        sa = self._center_info_text(
+            "Artist: %s" % self.info['song_playing_artist'])
+        lines = [st, sa]
+        return self._wrap_filler(urwid.Pile(lines), "Now Playing")
+
+    def _song_queue_widget(self):
+        if 'queued_songs' not in self.info:
+            return self._wrap_filler(urwid.Pile([]), "(no songs queued)")
+        n = len(self.info['queued_songs'])
+        if n == 0:
+            return self._wrap_filler(urwid.Pile([]), "(no songs queued)")
+
+        showing = min(n, 5)
+        not_showing = (n - 5) if (n > 5) else 0
+
+        lines = []
+        songs = self.info['queued_songs']
+        for i in range(showing):
+            song = songs[i]
+            t = self._center_info_text("%d) Title: %s" % (i, song['title']))
+            lines.append(t)
+            a = self._center_info_text("   Artist: %s" % song['artist'])
+            lines.append(a)
+        if not_showing != 0:
+            m = self._center_info_text("(%d more)" % not_showing)
+            lines.append(m)
+        return self._wrap_filler(urwid.Pile(lines), "Song Queue")
+
     ###########################################################################
 
     def _build_widgets(self):
@@ -191,10 +226,13 @@ class ScreenUI(object):
         blk = self._block_widget()
         ws = self._websocket_widget()
         sr = self._sys_res_widget()
+        sp = self._song_playing_widget()
+        sq = self._song_queue_widget()
 
         col1 = urwid.Pile([ws, fee, eco, mem])
         col2 = urwid.Pile([net, blk, sr])
-        col3 = urwid.AttrMap(urwid.SolidFill(), "background")
+        #col3 = urwid.AttrMap(urwid.SolidFill(), "background")
+        col3 = urwid.Pile([sp, sq])
         cols = urwid.Columns([col1, col2, col3])
 
         self.loop.widget = cols
