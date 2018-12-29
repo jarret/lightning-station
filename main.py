@@ -3,6 +3,7 @@
 import time
 import argparse
 import logging
+import traceback
 
 
 from twisted.internet import reactor, task
@@ -17,7 +18,7 @@ from block_listener import NewBlockQueue
 from eink_ui import EinkUI
 from system_resources import SystemResources
 from audio_player import AudioPlayer
-from music_select import MusicSelect
+from jukebox import Jukebox
 
 
 ###############################################################################
@@ -77,10 +78,10 @@ class PeriodicUpdates(object):
 
     def run(self):
         t = task.LoopingCall(self._update_time)
-        t.start(1.0)
+        t.start(5.0)
 
         l = task.LoopingCall(self._update_node_info)
-        l.start(5.0)
+        l.start(10.0)
 
         l = task.LoopingCall(self._update_host_info)
         l.start(20.0)
@@ -125,7 +126,11 @@ if __name__ == '__main__':
     sw = ServeWeb(r)
     sw.run()
 
-    sws = ServeWebsocket(r, sui, eui, MusicSelect("/home/jarret/audio/"))
+    j = Jukebox(r, "/home/jarret/audio/",
+                "/home/jarret/lightningd-run/lightning-dir/lightning-rpc")
+    j.run()
+
+    sws = ServeWebsocket(r, sui, eui, j)
     sws.run()
 
     try:
@@ -134,6 +139,7 @@ if __name__ == '__main__':
         else:
             # reactor is sarted from screen_ui
             sui.start_event_loop()
-    except:
+    except Exception:
         sui.stop()
-        logging.exception('')
+        tb = traceback.format_exc()
+        log(tb)

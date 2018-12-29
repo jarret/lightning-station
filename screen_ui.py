@@ -48,7 +48,7 @@ class ScreenUI(object):
                               event_loop=event_loop,
                               unhandled_input=self.exit_on_q)
         cols, rows = loop.screen.get_cols_rows()
-        self._assert_terminal_size(cols, rows)
+        #self._assert_terminal_size(cols, rows)
         loop.screen.set_terminal_properties(colors=256)
         return loop
 
@@ -203,9 +203,9 @@ class ScreenUI(object):
 
     def update_info(self, new_info):
         self.info.update(new_info)
-        log(json.dumps(new_info, indent=1, sort_keys=True))
+        #log(json.dumps(new_info, indent=1, sort_keys=True))
         if self.console:
-            log(json.dumps(new_info, indent=1, sort_keys=True))
+            #log(json.dumps(new_info, indent=1, sort_keys=True))
             return
 
         self._build_widgets()
