@@ -16,7 +16,7 @@ for p in SOUND_EFFECTS.values():
 
 
 CMDS = [
-    ['omxplayer', '-i', 'local'],
+    ['omxplayer', '-o', 'local'],
     ['mpg123-pulse'],
 ]
 
