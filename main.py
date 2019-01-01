@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import time
 import argparse
 import logging
@@ -91,7 +92,7 @@ class PeriodicUpdates(object):
 
 DEFAULT_LOG_FILE = "/tmp/lightning-station.log"
 
-DESCRIPTION = ("Lighting Station - monitors and doodads for a bitcoin full "
+DESCRIPTION = ("Lightning Station - monitors and doodads for a bitcoin full "
                "node, lightning node and stuff that is fun and interesting.")
 
 if __name__ == '__main__':
@@ -103,9 +104,24 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--log-file', type=str, default=DEFAULT_LOG_FILE,
                         help="File to write debug logging blabber to; Best to "
                              "keep off of Pi's SD card.")
+    parser.add_argument('audio_dir', type=str,
+                        help="directory wth the mp3 songs in it")
+    parser.add_argument('lightning_rpc', type=str,
+                        help="c-lightning daemon rpc file")
+    parser.add_argument('blockchain_device', type=str,
+                        help="device holding the blockchain for monitoring I/O")
+    parser.add_argument('blockchain_dir', type=str,
+                        help="dir holding the blockchain for monitoring size")
     args = parser.parse_args()
     setup_log(args.console, args.log_file)
 
+    assert os.path.exists(args.audio_dir), "audio dir doesn't exist?"
+    assert os.path.isdir(args.audio_dir), "audio dir not a dir?"
+    assert os.path.exists(args.lightning_rpc), "rpc file doesn't exist?"
+    assert os.path.exists("/dev/" + args.blockchain_device), ("device doesn't "
+                                                              "exist?")
+    assert os.path.exists(args.blockchain_dir), "blockchain dir doesn't exist?"
+    assert os.path.isdir(args.blockchain_dir), "blockchain dir not a dir?"
     log("hello")
 
     r = reactor
@@ -118,7 +134,7 @@ if __name__ == '__main__':
     pu = PeriodicUpdates(sui)
     r.callLater(0.5, pu.run)
 
-    sr = SystemResources(r, sui)
+    sr = SystemResources(r, sui, args.blockchain_dir, args.blockchain_device)
     sr.run()
 
     eui = EinkUI()
@@ -126,8 +142,7 @@ if __name__ == '__main__':
     sw = ServeWeb(r)
     sw.run()
 
-    j = Jukebox(r, sui, "/home/jarret/audio/",
-                "/home/jarret/lightningd-run/lightning-dir/lightning-rpc")
+    j = Jukebox(r, sui, args.audio_dir, args.lightning_rpc)
     j.run()
 
     sws = ServeWebsocket(r, sui, eui, j)

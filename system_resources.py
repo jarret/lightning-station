@@ -5,13 +5,13 @@ from twisted.internet import threads
 
 
 INTERVAL = 2.0
-PATH = "/home/jarret/bitcoind-run/"
-DEVICE = 'sda'
 
 class SystemResources(object):
-    def __init__(self, reactor, screen_ui):
+    def __init__(self, reactor, screen_ui, blockchain_dir, blockchain_device):
         self.screen_ui = screen_ui
         self.reactor = reactor
+        self.blockchain_dir = blockchain_dir
+        self.blockchain_device = blockchain_device
 
     ###########################################################################
 
@@ -29,19 +29,19 @@ class SystemResources(object):
 
     ###########################################################################
 
-    def _poll_system_resources_thread_func():
+    def _poll_system_resources_thread_func(blockchain_dir, blockchain_device):
         sr = {}
         vm = psutil.virtual_memory()
         sr['mem_total'] = vm.total
         #sr['mem_available'] = vm.available
         sr['mem_used_pct'] = ((1.0 - (float(vm.available) / float(vm.total))) *
                               100.0)
-        start_disk = psutil.disk_io_counters(perdisk=True)[DEVICE]
+        start_disk = psutil.disk_io_counters(perdisk=True)[blockchain_device]
         start_net = psutil.net_io_counters()
         sr['cpu_pct'] = psutil.cpu_percent(interval=INTERVAL, percpu=True)
         sr['cpu_pct'].sort()
         sr['cpu_pct'].reverse()
-        end_disk = psutil.disk_io_counters(perdisk=True)[DEVICE]
+        end_disk = psutil.disk_io_counters(perdisk=True)[blockchain_device]
         end_net = psutil.net_io_counters()
         read = int((end_disk.read_bytes - start_disk.read_bytes) / INTERVAL)
         write = int((end_disk.write_bytes - start_disk.write_bytes) / INTERVAL)
@@ -51,7 +51,7 @@ class SystemResources(object):
         recv = int((end_net.bytes_recv - start_net.bytes_recv) / INTERVAL)
         sr['net_send'] = send
         sr['net_recv'] = recv
-        sr['dir_size'] = SystemResources.sum_dir_size(PATH)
+        sr['dir_size'] = SystemResources.sum_dir_size(blockchain_dir)
         return sr
 
     def _poll_system_resources_callback(self, result):
@@ -60,7 +60,8 @@ class SystemResources(object):
 
     def _poll_system_resources_defer(self):
         d = threads.deferToThread(
-            SystemResources._poll_system_resources_thread_func)
+            SystemResources._poll_system_resources_thread_func,
+            self.blockchain_dir, self.blockchain_device)
         d.addCallback(self._poll_system_resources_callback)
 
     ###########################################################################
