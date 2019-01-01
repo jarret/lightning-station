@@ -166,7 +166,7 @@ function ProcessReceivedNotification(event) {
 
 function ConnectUponLoad() {
     // create websocket instance
-    AppSocket = new WebSocket("ws://127.0.0.1:9000");
+    AppSocket = new WebSocket("ws://" + location.hostname +":9000");
     // add event listener reacting when message is received
     AppSocket.onmessage = ProcessReceivedNotification
 }
