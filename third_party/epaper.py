@@ -57,7 +57,7 @@ class Command(object):
     LENGTH_LENGTH = 2
     FOOTER_LENGTH = 4
     CHECK_LENGTH = 1
-    COMMAND = '\x00'
+    COMMAND = b'\x00'
 
     def __init__(self, command=None, data=None):
         self.command = command or self.COMMAND
