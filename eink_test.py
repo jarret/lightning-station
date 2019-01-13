@@ -80,7 +80,7 @@ if __name__ == '__main__':
     d = QRDraw(MOCK_BOLT11)
     print('\n'.join(d.iter_string_rows()))
 
-    with EPaper as paper:
+    with EPaper() as paper:
         paper.send(Handshake())
         wait_for_paper(paper)
         paper.send(SetPallet(SetPallet.BLACK, SetPallet.WHITE))
