@@ -47,7 +47,7 @@ class QRDraw(object):
 
     def iter_string_rows(self):
         rows = {}
-        for y, x_start, x_end, rect in d.iter_rects():
+        for y, x_start, x_end, rect in self.iter_rects():
             if y not in rows.keys():
                 rows[y] = []
             s = ""
@@ -62,7 +62,7 @@ class QRDraw(object):
             yield "".join(rect['str'] for rect in rects)
 
     def iter_draw_params(scale=2):
-        for y, x_start, x_end, rect:
+        for y, x_start, x_end, rect in self.iter_rects():
             color = rect[0]
             y1 = int(y * scale)
             y2 = int((y + 1) * scale)
