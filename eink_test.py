@@ -5,6 +5,10 @@ from third_party.epaper import EPaper
 from third_party.epaper import Handshake
 from third_party.epaper import RefreshAndUpdate
 from third_party.epaper import SetPallet
+from third_party.epaper import DrawRectangle
+from third_party.epaper import DrawTriangle
+from third_party.epaper import FillRectangle
+from third_party.epaper import FillTriangle
 
 import qrcode
 
@@ -61,13 +65,14 @@ class QRDraw(object):
         for rects in rows.values():
             yield "".join(rect['str'] for rect in rects)
 
-    def iter_draw_params(scale=2):
+    def iter_draw_params(self, x_offset=30, y_offset=30, scale=2):
         for y, x_start, x_end, rect in self.iter_rects():
             color = rect[0]
-            y1 = int(y * scale)
-            y2 = int((y + 1) * scale)
-            x1 = int(x_start * scale)
-            x2 = int(x_end * scale)
+            print("%s, y: %d xstart: %d xend: %d" % (rect, y, x_start, x_end))
+            y1 = int(y * scale) + y_offset
+            y2 = int((y + 1) * scale) + y_offset
+            x1 = int(x_start * scale) + x_offset
+            x2 = int(x_end * scale) + x_offset
             yield color, x1, y1, x2, y2
 
 ###############################################################################
@@ -85,7 +90,17 @@ if __name__ == '__main__':
         wait_for_paper(paper)
         paper.send(SetPallet(SetPallet.BLACK, SetPallet.WHITE))
 
-        paper.send(DrawRectangle(10, 10, 100, 100))
+        #paper.send(DrawRectangle(10, 10, 100, 100))
+        for color, x1, y1, x2, y2 in d.iter_draw_params(scale=4):
+            if color == 0xff:
+                continue
+            else:
+                #print("sending %d %d %d %d" % (x1, y1, x2, y2))
+                paper.send(FillRectangle(x1, y1, x2, y2))
+
+        print("refreshing")
         paper.send(RefreshAndUpdate())
+        print("refreshed, waiting")
         wait_for_paper(paper)
+        print("waited")
 
