@@ -39,8 +39,8 @@ def _do_checksum(data):
     '''
     checksum = 0
     for byte in data:
-        checksum = checksum ^ ord(byte)
-    return chr(checksum)
+        checksum = checksum ^ byte
+    return checksum.to_bytes(1, byteorder='big')
 
 class Command(object):
     '''
@@ -76,13 +76,19 @@ class Command(object):
         Conver the internal bytes into a string, not the human readable sort,
         but the sort to be used by the protocol.
         '''
-        return ''.join(self.bytes)
+        return (b''.join(self.bytes) if isinstance(self.bytes, list) else
+                self.bytes)
 
     def _encode_packet(self):
         '''
         Encodes and returns the entire packet in a format that is suitable for
         transmitting over the serial connection.
         '''
+        #print("h: %s" % type(Command.FRAME_HEADER))
+        #print("p: %s" % type(struct.pack('>H', self.calculate_length())))
+        #print("c: %s" % type(self.command))
+        #print("b: %s" % type(self.convert_bytes()))
+        #print("f: %s" % type(Command.FRAME_FOOTER))
         return Command.FRAME_HEADER + struct.pack('>H', self.calculate_length()) + self.command + self.convert_bytes() + Command.FRAME_FOOTER
 
 
@@ -236,7 +242,7 @@ class DisplayText(Command):
     '''
     COMMAND = b'\x30'
     def __init__(self, x, y, text):
-        super(DisplayText, self).__init__(self.COMMAND, struct.pack(">HH", x, y) + text + '\x00')
+        super(DisplayText, self).__init__(self.COMMAND, struct.pack(">HH", x, y) + text + b'\x00')
 
 class DisplayImage(DisplayText):
     '''
@@ -331,6 +337,8 @@ class DrawTriangle(Command):
     '''
     COMMAND = b'\x28'
     def __init__(self, x1, y1, x2, y2, x3, y3):
+        d = struct.pack(">HHHHHH", x1, y1, x2, y2, x3, y3)
+        print(d)
         super(DrawTriangle, self).__init__(self.COMMAND, struct.pack(">HHHHHH", x1, y1, x2, y2, x3, y3))
 
 class FillTriangle(DrawTriangle):
@@ -344,8 +352,7 @@ class DrawRectangle(Command):
     COMMAND = b'\x25'
     def __init__(self, x1, y1, x2, y2):
         super(DrawRectangle, self).__init__(self.COMMAND,
-                                            struct.pack(">HHHH",
-                                            x1, y1, x2, y2))
+            struct.pack(">HHHH", x1, y1, x2, y2))
 
 class FillRectangle(DrawRectangle):
     COMMAND = b'\x24'
