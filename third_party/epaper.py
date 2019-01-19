@@ -127,7 +127,7 @@ class SetBaudrate(Command):
     return the result after sending this command, since the host may take a
     period of time to change its Baud rate.
     '''
-    COMMAND = '\x01'
+    COMMAND = b'\x01'
 
     def __init__(self, baud):
         super(SetBaudrate, self).__init__(SetBaudrate.COMMAND, struct.pack('>L', baud))
@@ -140,7 +140,7 @@ class ReadBaudrate(Command):
     Return the current Baud rate value in ASCII format.
 
     '''
-    COMMAND = '\x02'
+    COMMAND = b'\x02'
 
 class ReadStorageMode(Command):
     '''
