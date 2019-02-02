@@ -20,7 +20,7 @@ class NewBlock(object):
 
     ###########################################################################
 
-    def _speak_line_thread_func(height, name, phrase):
+    def _speak_line_thread_func_annoying(height, name, phrase):
         log("speak thread func")
         tawker = Tawker()
         line = 'New block: %d. I dub thee "%s."' % (height, name)
@@ -29,6 +29,16 @@ class NewBlock(object):
         time.sleep(0.3)
         tawker.tawk(phrase)
         return line + " " + phrase
+
+    def _speak_line_thread_func(height, name, phrase):
+        log("speak thread func")
+        tawker = Tawker()
+        time.sleep(1.0)
+        line = 'New block: %d' % height
+        tawker.tawk(line)
+        #time.sleep(0.3)
+        #tawker.tawk(phrase)
+        return line
 
     def _speak_line_callback(self, result):
         log("spoke line: %s" % result)
