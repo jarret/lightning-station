@@ -1,8 +1,10 @@
 import os
 import io
+import time
 import qrcode
 
 from twisted.internet import threads
+from twisted.internet.task import LoopingCall
 
 import RPi.GPIO as GPIO
 
@@ -30,6 +32,7 @@ class PhysicalUI(object):
         self.screen_ui = screen_ui
         self.jukebox = jukebox
         self.blink = None
+        self.drawing = False
 
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(BUTTON_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -96,29 +99,30 @@ class PhysicalUI(object):
     def screen_draw(self, abc):
         log("draw screen")
         time.sleep(1.0)
+        return "doody"
 
     def button_catch(self, button):
-        self.reactor.callFromThread(self.button, button_no)
+        self.reactor.callFromThread(self.button, button)
 
-    def button(self, button_no)
+    def button(self, button_no):
         if self.drawing:
             print("already drawing, dropping on floor")
             return
 
-        print("got button: %s" % button)
+        log("got button: %s" % button_no)
         self.drawing = True
         self.leds_on()
-        print("kicking off draw")
-        d = threads.deferToThread(self.display.draw_selection,
-                                  SELECTION_MAPPING[button])
+        log("kicking off draw")
+        d = threads.deferToThread(self.screen_draw, "howdy")
         d.addCallback(self.finish_drawing)
         self.blink = LoopingCall(self.leds_flip)
         self.blink.start(0.2, now=False)
 
     def finish_drawing(self, result):
         self.drawing = False
+        self.blink.stop()
         self.leds_off()
-        print("finished_drawing")
+        log("finished_drawing")
 
     def run(self):
         pass
