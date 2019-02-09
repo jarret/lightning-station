@@ -150,7 +150,7 @@ if __name__ == '__main__':
         sw.run()
         sws = ServeWebsocket(r, sui, weui, j)
         sws.run()
-     else:
+    else:
         pui = PhysicalUI(r, sui, j)
         pui.run()
 
