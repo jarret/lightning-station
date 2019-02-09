@@ -93,9 +93,18 @@ class MusicSelect(object):
         return song
 
     def get_next_song(self):
+        self.index += 1
         i = self.index % len(self.songs)
         s = self.songs[i]
-        self.index += 1
+        return s
+
+    def get_prev_song(self):
+        self.index -= 1
+        if self.index < 0:
+            # wrap index
+            self.index = len(self.songs) - 2
+        i = self.index % len(self.songs)
+        s = self.songs[i]
         return s
 
     def iter_songs(self):
@@ -201,6 +210,9 @@ class Jukebox(object):
 
     def browse_next_song(self):
         return self.music_select.get_next_song()
+
+    def browse_prev_song(self):
+        return self.music_select.get_prev_song()
 
     ###########################################################################
 
