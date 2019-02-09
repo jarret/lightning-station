@@ -6,6 +6,10 @@ import qrcode
 from twisted.internet import threads
 from twisted.internet.task import LoopingCall
 
+from waveshare.epaper import EPaper
+
+from invoicedisplay import InvoiceDisplay
+
 import RPi.GPIO as GPIO
 
 from logger import log
@@ -33,6 +37,9 @@ class PhysicalUI(object):
         self.jukebox = jukebox
         self.blink = None
         self.drawing = False
+
+        self.paper = EPaper()
+        self.display = InvoiceDisplay(paper, refresh_cb=self.refresh_cb)
 
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(BUTTON_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -106,21 +113,29 @@ class PhysicalUI(object):
 
     def button(self, button_no):
         if self.drawing:
-            print("already drawing, dropping on floor")
+            log("already drawing, dropping on floor")
             return
 
         log("got button: %s" % button_no)
         self.drawing = True
         self.leds_on()
         log("kicking off draw")
-        d = threads.deferToThread(self.screen_draw, "howdy")
+        if button_no in {BUTTON_1, BUTTON_2}:
+            song = self.jukebox.browse_next_song()
+        else:
+            song = self.jukebox.browse_prev_song()
+        selection = {'first_line':  song['title'],
+                     'second_line': song['artist'],
+                     'price':       song['price'],
+                     'invoice':     song['bolt11']}
+        d = threads.deferToThread(self.display.draw_selection, selection)
         d.addCallback(self.finish_drawing)
         self.blink = LoopingCall(self.leds_flip)
         self.blink.start(0.2, now=False)
 
     def finish_drawing(self, result):
         self.drawing = False
-        self.blink.stop()
+        #self.blink.stop()
         self.leds_off()
         log("finished_drawing")
 
