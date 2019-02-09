@@ -16,7 +16,8 @@ from logger import log, setup_log
 from serve_web import ServeWeb
 from serve_websocket import ServeWebsocket
 from block_listener import NewBlockQueue
-from eink_ui import EinkUI
+from web_eink_ui import WebEinkUI
+from physical_ui import PhysicalUI
 from system_resources import SystemResources
 from audio_player import AudioPlayer
 from jukebox import Jukebox
@@ -101,6 +102,8 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--console', action='store_true',
                         help="print info to console log instead of fancy "
                              "curses output")
+    parser.add_argument('-w', '--websocket', action='store_true',
+                        help="present UI through websocket rather than e-ink")
     parser.add_argument('-l', '--log-file', type=str, default=DEFAULT_LOG_FILE,
                         help="File to write debug logging blabber to; Best to "
                              "keep off of Pi's SD card.")
@@ -137,16 +140,19 @@ if __name__ == '__main__':
     sr = SystemResources(r, sui, args.blockchain_dir, args.blockchain_device)
     sr.run()
 
-    eui = EinkUI()
-
-    sw = ServeWeb(r)
-    sw.run()
 
     j = Jukebox(r, sui, args.audio_dir, args.lightning_rpc)
     j.run()
 
-    sws = ServeWebsocket(r, sui, eui, j)
-    sws.run()
+    if args.websocket:
+        weui = WebEinkUI()
+        sw = ServeWeb(r)
+        sw.run()
+        sws = ServeWebsocket(r, sui, weui, j)
+        sws.run()
+     else:
+        pui = PhysicalUI(r, sui, j)
+        pui.run()
 
     try:
         if args.console:

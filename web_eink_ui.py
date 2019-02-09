@@ -23,7 +23,12 @@ for p in FONTS.values():
 
 MOCK_BOLT11 = "lnbc50n1pdm373mpp50hlcjdrcm9u3qqqs4a926g63d3t5qwyndytqjjgknskuvmd9kc2sdz2d4shyapwwpujq6twwehkjcm9ypnx7u3qxys8q6tcv4k8xtpqw4ek2ujlwd68y6twvuazqg3zyqxqzjcuvzstexcj4zcz7ldtkwz8t5pdsghauyhkdqdxccx8ts3ta023xqzwgwxuvlu9eehh97d0qcu9k5a4u2glenrekp7w9sswydl4hneyjqqzkxf54"
 
-class EinkUI(object):
+class WebEinkUI(object):
+    """
+    This is the pixel grid QR code presentation for the websocket that is meant
+    to approximate an e-ink ui. It is helpful for running this software on
+    a system that doesn't have the GPIO and display.
+    """
     def qrcode_image(bolt11):
         qr = qrcode.QRCode(version=1,
                            error_correction=qrcode.constants.ERROR_CORRECT_L)
