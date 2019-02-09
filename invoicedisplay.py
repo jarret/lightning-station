@@ -16,7 +16,9 @@ from waveshare.epaper import SetCurrentDisplayRotation
 from waveshare.epaper import SetEnFontSize
 from waveshare.epaper import ClearScreen
 
-from lib.qrdraw import QRDraw
+from qrdraw import QRDraw
+
+from logger import log
 
 
 class InvoiceDisplay(object):
@@ -30,54 +32,54 @@ class InvoiceDisplay(object):
         self._setup_display()
 
     def _handshake(self):
-        print("handshake")
+        log("handshake")
         start_time = time.time()
         self.paper.send(Handshake())
-        print("handshake: %0.2f seconds" % (time.time() - start_time))
+        log("handshake: %0.2f seconds" % (time.time() - start_time))
 
     def _set_pallet_black(self):
         # This is darker and good for text, but there is some bleed into
         # adjacent pixels on the grid.
-        print("set pallet")
+        log("set pallet")
         start_time = time.time()
         self.paper.send(SetPallet(SetPallet.BLACK, SetPallet.WHITE))
-        print("set pallet: %0.2f seconds" % (time.time() - start_time))
+        log("set pallet: %0.2f seconds" % (time.time() - start_time))
 
     def _set_pallet_gray(self):
         # this is the most accurate for staying in the pixel grid
-        print("set pallet")
+        log("set pallet")
         start_time = time.time()
         self.paper.send(SetPallet(SetPallet.DARK_GRAY, SetPallet.WHITE))
-        print("set pallet: %0.2f seconds" % (time.time() - start_time))
+        log("set pallet: %0.2f seconds" % (time.time() - start_time))
 
     def _set_rotation(self):
-        print("set rotation")
+        log("set rotation")
         start_time = time.time()
         self.paper.send(
             SetCurrentDisplayRotation(SetCurrentDisplayRotation.FLIP))
-        print("set rotation: %0.2f seconds" % (time.time() - start_time))
+        log("set rotation: %0.2f seconds" % (time.time() - start_time))
 
     def _set_font_size_small(self):
-        print("set font size")
+        log("set font size")
         start_time = time.time()
         self.paper.send(SetEnFontSize(SetEnFontSize.THIRTYTWO))
-        print("set font size: %0.2f seconds" % (time.time() - start_time))
+        log("set font size: %0.2f seconds" % (time.time() - start_time))
 
     def _set_font_size_medium(self):
-        print("set font size")
+        log("set font size")
         start_time = time.time()
         self.paper.send(SetEnFontSize(SetEnFontSize.FOURTYEIGHT))
-        print("set font size: %0.2f seconds" % (time.time() - start_time))
+        log("set font size: %0.2f seconds" % (time.time() - start_time))
 
     def _set_font_size_large(self):
-        print("set font size")
+        log("set font size")
         start_time = time.time()
         self.paper.send(SetEnFontSize(SetEnFontSize.SIXTYFOUR))
-        print("set font size: %0.2f seconds" % (time.time() - start_time))
+        log("set font size: %0.2f seconds" % (time.time() - start_time))
 
     def _setup_display(self):
         start_time = time.time()
-        print("setup display")
+        log("setup display")
         self._handshake()
         # give the display a chance to initialize
         time.sleep(2)
@@ -86,7 +88,7 @@ class InvoiceDisplay(object):
         # make sure setup is acknowledged before proceeding into normal
         # operation
         self.paper.read_responses(timeout=10)
-        print("finished setup in %0.2f seconds" % (time.time() - start_time))
+        log("finished setup in %0.2f seconds" % (time.time() - start_time))
 
     def _fill_rectangle(self, x1, y1, x2, y2):
         self.paper.send(FillRectangle(x1, y1, x2, y2))
@@ -102,14 +104,14 @@ class InvoiceDisplay(object):
                 continue
             else:
                 self._fill_rectangle(x1, y1, x2, y2)
-        print("draw qr: %0.2f seconds" % (time.time() - start_time))
+        log("draw qr: %0.2f seconds" % (time.time() - start_time))
 
     def _refresh(self):
         if self.refresh_cb:
             self.refresh_cb()
         start_time = time.time()
         self.paper.send(RefreshAndUpdate())
-        print("refresh update: %0.2f seconds" % (time.time() - start_time))
+        log("refresh update: %0.2f seconds" % (time.time() - start_time))
 
     def _draw_label(self, line1, line2, price):
         start_time = time.time()
@@ -119,10 +121,10 @@ class InvoiceDisplay(object):
         self.paper.send(DisplayText(20, 100, line2.encode("gb2312")))
         self._set_font_size_medium()
         self.paper.send(DisplayText(20, 140, price.encode("gb2312")))
-        print("label: %0.2f seconds" % (time.time() - start_time))
+        log("label: %0.2f seconds" % (time.time() - start_time))
 
     def _clear_screen(self):
-        print("clearing screen")
+        log("clearing screen")
         self.paper.send(ClearScreen())
 
     def draw_selection(self, selection):
@@ -131,13 +133,13 @@ class InvoiceDisplay(object):
         line2 = selection['second_line']
         price = "%.03f satoshis" % selection['price']
         start_time = time.time()
-        print("drawing: %s - %s" % (line1, line2))
+        log("drawing: %s - %s" % (line1, line2))
         self._clear_screen()
         self._set_pallet_gray()
         self._draw_qr(qd)
         self._set_pallet_black()
         self._draw_label(line1, line2, price)
         self._refresh()
-        print("reading after: %0.2f seconds" % (time.time() - start_time))
+        log("reading after: %0.2f seconds" % (time.time() - start_time))
         self.paper.read_responses()
-        print("finished: %0.2f seconds" % (time.time() - start_time))
+        log("finished: %0.2f seconds" % (time.time() - start_time))

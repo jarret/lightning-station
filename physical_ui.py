@@ -39,7 +39,7 @@ class PhysicalUI(object):
         self.drawing = False
 
         self.paper = EPaper()
-        self.display = InvoiceDisplay(paper, refresh_cb=self.refresh_cb)
+        self.display = InvoiceDisplay(self.paper, refresh_cb=self.refresh_cb)
 
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(BUTTON_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -103,11 +103,6 @@ class PhysicalUI(object):
         else:
             self.leds_on()
 
-    def screen_draw(self, abc):
-        log("draw screen")
-        time.sleep(1.0)
-        return "doody"
-
     def button_catch(self, button):
         self.reactor.callFromThread(self.button, button)
 
@@ -120,7 +115,7 @@ class PhysicalUI(object):
         self.drawing = True
         self.leds_on()
         log("kicking off draw")
-        if button_no in {BUTTON_1, BUTTON_2}:
+        if button_no in {BUTTON_1, BUTTON_3}:
             song = self.jukebox.browse_next_song()
         else:
             song = self.jukebox.browse_prev_song()
