@@ -143,3 +143,13 @@ class InvoiceDisplay(object):
         log("reading after: %0.2f seconds" % (time.time() - start_time))
         self.paper.read_responses()
         log("finished: %0.2f seconds" % (time.time() - start_time))
+
+    def draw_purchased(self, price):
+        self._set_pallet_black()
+        self._set_font_size_large()
+        line1 = "Lightning struck!"
+        line2 = "%.03f satoshis!" % price)
+        self.paper.send(DisplayText(20, 350, line1.encode("gb2312")))
+        self.paper.send(DisplayText(20, 400, line2.encode("gb2312")))
+        self._refresh()
+

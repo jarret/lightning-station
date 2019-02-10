@@ -54,11 +54,11 @@ SONGS = [
     {'path':   "thunder-rolls.mp3",
      'artist': "Garth Brooks",
      'title':  "Thunder Rolls",
-     'price':  14.222},
+     'price':  14.456},
     {'path':   "hustlin.mp3",
      'artist': "Rick Ross",
      'title':  "Hustlin'",
-     'price':  11.999},
+     'price':  22.222},
     {'path':   "mo-money.mp3",
      'artist': "The Notorious B.I.G.",
      'title':  "Mo Money Mo Problems",
@@ -188,6 +188,8 @@ class JukeboxQueue(object):
 class Jukebox(object):
     def __init__(self, reactor, screen_ui, music_dir, daemon_rpc):
         self.queue = []
+        self.purchased_cb = None
+        self.renewed_cb = None
         self.reactor = reactor
         self.music_select = MusicSelect(music_dir)
         self.daemon_rpc = daemon_rpc
@@ -284,12 +286,14 @@ class Jukebox(object):
             self.jukebox_queue.add_song(songs[l]['title'],
                                         songs[l]['artist'],
                                         songs[l]['path'])
+            self.purchased_cb(songs[l]['price'])
 
         for old_label, new_label, bolt11, expires in renews:
             s = songs[old_label]
             s['label'] = new_label
             s['bolt11'] = bolt11
             s['expires'] = expires
+            self.renewed_cb(old_label, songs[l])
 
         # TODO - renew websocket/UI clients
         self.reactor.callLater(CHECK_PERIOD, self._periodic_check)
@@ -310,6 +314,14 @@ class Jukebox(object):
     def _periodic_check(self):
         log("invoice checking")
         self._check_paid_defer()
+
+    ###########################################################################
+
+    def set_purchased_cb(self, cb):
+        self.purchased_cb = cb
+
+    def set_renewed_cb(self, cb):
+        self.renewed_cb = cb
 
     ###########################################################################
 

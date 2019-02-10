@@ -37,6 +37,10 @@ class PhysicalUI(object):
         self.jukebox = jukebox
         self.blink = None
         self.drawing = False
+        self.curent_label = None
+
+        self.jukebox.set_purchased_cb(self.purchased)
+        self.jukebox.set_renewed_cb(self.renew)
 
         self.paper = EPaper()
         self.display = InvoiceDisplay(self.paper, refresh_cb=self.refresh_cb)
@@ -71,13 +75,6 @@ class PhysicalUI(object):
         GPIO.add_event_detect(BUTTON_4, GPIO.FALLING,
                               callback=self.button_catch, bouncetime=150)
 
-        # gpi buttons
-        # peridic calls to blink lights
-        # thread to draw display
-        # call-in to refresh screen with new invoice upon being paid
-        # move forwards and backwards through songs.
-        # jukebox.browse_next_song() & jukebox.browse_prev_song
-
     def refresh_cb(self):
         self.blink.stop()
         self.leds_on()
@@ -106,19 +103,11 @@ class PhysicalUI(object):
     def button_catch(self, button):
         self.reactor.callFromThread(self.button, button)
 
-    def button(self, button_no):
-        if self.drawing:
-            log("already drawing, dropping on floor")
-            return
-
-        log("got button: %s" % button_no)
+    def draw_song(self, song):
         self.drawing = True
         self.leds_on()
+        self.current_label = song['label']
         log("kicking off draw")
-        if button_no in {BUTTON_1, BUTTON_3}:
-            song = self.jukebox.browse_next_song()
-        else:
-            song = self.jukebox.browse_prev_song()
         selection = {'first_line':  song['title'],
                      'second_line': song['artist'],
                      'price':       song['price'],
@@ -128,11 +117,42 @@ class PhysicalUI(object):
         self.blink = LoopingCall(self.leds_flip)
         self.blink.start(0.2, now=False)
 
+    def button(self, button_no):
+        if self.drawing:
+            log("already drawing, dropping on floor")
+            return
+
+        log("got button: %s" % button_no)
+        if button_no in {BUTTON_1, BUTTON_3}:
+            self.draw_song(self.jukebox.browse_next_song())
+        else:
+            self.draw_song(self.jukebox.browse_prev_song())
+
     def finish_drawing(self, result):
         self.drawing = False
         #self.blink.stop()
         self.leds_off()
         log("finished_drawing")
+
+    def purchased(self, price):
+        if self.drawing:
+            # TODO - figure out what to do. Queue draw events?
+            log("already drawing, not drawing purchased.")
+            return
+        self.drawing = True
+        self.leds_on()
+        d = threads.deferToThread(self.display.draw_purchased, price)
+        d.addCallback(self.finish_drawing)
+
+    def renewed(self, old_label, song):
+        if self.drawing:
+            # TODO - figure out what to do. Queue draw events?
+            log("already drawing, not drawing renewed.")
+            return
+        if old_label != self.current_label:
+            # don't have to renew stuff we aren't currently drawing
+            return
+        self.draw_song(song)
 
     def run(self):
         pass
