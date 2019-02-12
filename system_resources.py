@@ -29,6 +29,21 @@ class SystemResources(object):
 
     ###########################################################################
 
+    def get_ips():
+        p = psutil.net_if_addrs()
+        for i, addrs in p.items():
+            for a in addrs:
+                if a[0] == 2:
+                    if a[1].startswith("192.168"):
+                        yield a[1]
+    def get_ip_addr():
+        ips = list(SystemResources.get_ips())
+        if len(ips) > 0:
+            return ips[0]
+        return "???"
+            
+    ###########################################################################
+
     def _poll_system_resources_thread_func(blockchain_dir, blockchain_device):
         sr = {}
         vm = psutil.virtual_memory()
@@ -52,6 +67,7 @@ class SystemResources(object):
         sr['net_send'] = send
         sr['net_recv'] = recv
         sr['dir_size'] = SystemResources.sum_dir_size(blockchain_dir)
+        sr['ip_address'] = SystemResources.get_ip_addr()
         return sr
 
     def _poll_system_resources_callback(self, result):

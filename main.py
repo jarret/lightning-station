@@ -9,7 +9,6 @@ import traceback
 
 from twisted.internet import reactor, task
 
-from ip_address import get_ip_address
 from screen_ui import ScreenUI
 from bitcoinrpc import Bitcoind
 from logger import log, setup_log
@@ -25,7 +24,7 @@ from jukebox import Jukebox
 
 ###############################################################################
 
-FEE_RATE_BLOCKS = [1, 3, 6, 12, 24, 48, 100, 500]
+FEE_RATE_BLOCKS = [1, 3, 6, 12, 25, 50, 100, 500]
 
 class NodeInfo(object):
 
@@ -54,12 +53,6 @@ class NodeInfo(object):
                 'fee_estimate_eco': fee_estimate_eco,
                }
 
-class HostInfo(object):
-    def fetch():
-        info = {}
-        info['ip_address'] = get_ip_address()
-        return info
-
 ###############################################################################
 
 class PeriodicUpdates(object):
@@ -74,19 +67,12 @@ class PeriodicUpdates(object):
         node_info = NodeInfo.fetch()
         self.sui.update_info(node_info)
 
-    def _update_host_info(self):
-        host_info = HostInfo.fetch()
-        self.sui.update_info(host_info)
-
     def run(self):
         t = task.LoopingCall(self._update_time)
         t.start(5.0)
 
         l = task.LoopingCall(self._update_node_info)
         l.start(10.0)
-
-        l = task.LoopingCall(self._update_host_info)
-        l.start(20.0)
 
 
 ###############################################################################
