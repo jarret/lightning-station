@@ -40,7 +40,7 @@ class PhysicalUI(object):
         self.curent_label = None
 
         self.jukebox.set_purchased_cb(self.purchased)
-        self.jukebox.set_renewed_cb(self.renew)
+        self.jukebox.set_renewed_cb(self.renewed)
 
         self.paper = EPaper()
         self.display = InvoiceDisplay(self.paper, refresh_cb=self.refresh_cb)
@@ -112,10 +112,11 @@ class PhysicalUI(object):
                      'second_line': song['artist'],
                      'price':       song['price'],
                      'invoice':     song['bolt11']}
-        d = threads.deferToThread(self.display.draw_selection, selection)
-        d.addCallback(self.finish_drawing)
         self.blink = LoopingCall(self.leds_flip)
         self.blink.start(0.2, now=False)
+
+        d = threads.deferToThread(self.display.draw_selection, selection)
+        d.addCallback(self.finish_drawing)
 
     def button(self, button_no):
         if self.drawing:
@@ -130,7 +131,6 @@ class PhysicalUI(object):
 
     def finish_drawing(self, result):
         self.drawing = False
-        #self.blink.stop()
         self.leds_off()
         log("finished_drawing")
 
@@ -141,6 +141,8 @@ class PhysicalUI(object):
             return
         self.drawing = True
         self.leds_on()
+        self.blink = LoopingCall(self.leds_flip)
+        self.blink.start(0.2, now=False)
         d = threads.deferToThread(self.display.draw_purchased, price)
         d.addCallback(self.finish_drawing)
 
