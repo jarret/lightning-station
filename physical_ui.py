@@ -134,6 +134,10 @@ class PhysicalUI(object):
         self.leds_off()
         log("finished_drawing")
 
+    def finish_drawing_purchased(self, result):
+        self.finish_drawing(result)
+        self.reactor.callLater(2.0, self.button, BUTTON_1)
+
     def purchased(self, price):
         if self.drawing:
             # TODO - figure out what to do. Queue draw events?
@@ -144,7 +148,7 @@ class PhysicalUI(object):
         self.blink = LoopingCall(self.leds_flip)
         self.blink.start(0.2, now=False)
         d = threads.deferToThread(self.display.draw_purchased, price)
-        d.addCallback(self.finish_drawing)
+        d.addCallback(self.finish_drawing_purchased)
 
     def renewed(self, old_label, song):
         if self.drawing:

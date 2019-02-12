@@ -153,4 +153,4 @@ class InvoiceDisplay(object):
         self.paper.send(DisplayText(20, 350, line1.encode("gb2312")))
         self.paper.send(DisplayText(20, 450, line2.encode("gb2312")))
         self._refresh()
-
+        self.paper.read_responses()
