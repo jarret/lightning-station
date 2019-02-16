@@ -123,8 +123,8 @@ class ScreenUI(object):
             return self._wrap_box(urwid.Pile([]), "(no lightning node data)")
         a = self._center_info_text("Alias %s" % self.info['ln_alias'])
         v = self._center_info_text("Version %s" % self.info['ln_version'])
-        p = self._center_info_text("Peers: %d" % self.info['ln_num_peers'])
-        lines = [a, v, p]
+        #p = self._center_info_text("Peers: %d" % self.info['ln_num_peers'])
+        lines = [a, v]
         return self._wrap_box(urwid.Pile(lines), "c-lightning")
 
     def _daemon_widget(self):
