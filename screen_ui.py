@@ -29,6 +29,9 @@ class ScreenUI(object):
     def _center_info_text(self, string):
         return urwid.Text(('info_text', " %s " % string), align='center')
 
+    def _right_info_text(self, string):
+        return urwid.Text(('info_text', " %s " % string), align='right')
+
     def _center_title_text(self, string):
         return urwid.Text(('title_text', string), align='center')
 
@@ -83,33 +86,53 @@ class ScreenUI(object):
     def _fee_estimate_widget(self):
         if 'fee_estimate' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no fee estimates)")
-        lines = []
-        for block in sorted(self.info['fee_estimate'].keys()):
-            estimate = self.info['fee_estimate'][block]
-            s = "%d: %0.2f sat/byte" % (block, estimate)
-            lines.append(self._center_info_text(s))
-        return self._wrap_box(urwid.Pile(lines), "Conservative Fee Estimates")
-
-    def _fee_estimate_eco_widget(self):
         if 'fee_estimate_eco' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no eco fee estimates)")
-        lines = []
-        for block in sorted(self.info['fee_estimate_eco'].keys()):
-            estimate = self.info['fee_estimate_eco'][block]
-            s = "%d: %0.2f sat/byte" % (block, estimate)
-            lines.append(self._center_info_text(s))
-        return self._wrap_box(urwid.Pile(lines), "Econmical Fee Estimates")
 
+        title_row = []
+        title_row.append(self._center_title_text("Blocks"))
+        title_row.append(self._center_title_text("Fee"))
+        title_row.append(self._center_title_text("Eco"))
 
-    def _network_widget(self):
+        title = urwid.GridFlow(title_row, 8, 0, 0, "center")
+        lines = [title]
+
+        for block in sorted(self.info['fee_estimate'].keys()):
+            line = []
+            con = self.info['fee_estimate'][block]
+            eco = self.info['fee_estimate_eco'][block]
+
+            line.append(self._right_info_text(str(block)))
+            line.append(self._right_info_text("%0.2f" % (con)))
+            line.append(self._right_info_text("%0.2f" % (eco)))
+
+            lines.append(urwid.GridFlow(line, 8, 0, 0, "center"))
+
+        return self._wrap_box(urwid.Pile(lines), "Daemon Fee Estimates")
+
+    def _bitcoind_widget(self):
         if 'net_connections' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no network data)")
-        c = self._center_info_text("connections: %d" %
-                                   self.info['net_connections'])
-        v = self._center_info_text("version: %s" %
-                                   self.info['net_version'])
-        lines = [c, v]
-        return self._wrap_box(urwid.Pile(lines), "Network")
+            return self._wrap_box(urwid.Pile([]), "(no bitcoind data)")
+        v = self._center_info_text("%s" % self.info['net_version'])
+        c = self._center_info_text("peers: %d" % self.info['net_connections'])
+        lines = [v, c]
+        return self._wrap_box(urwid.Pile(lines), "bitcoind")
+
+    def _c_lightning_widget(self):
+        if 'ln_version' not in self.info:
+            return self._wrap_box(urwid.Pile([]), "(no lightning node data)")
+        a = self._center_info_text("Alias %s" % self.info['ln_alias'])
+        v = self._center_info_text("Version %s" % self.info['ln_version'])
+        p = self._center_info_text("Peers: %d" % self.info['ln_num_peers'])
+        lines = [a, v, p]
+        return self._wrap_box(urwid.Pile(lines), "c-lightning")
+
+    def _daemon_widget(self):
+        b = self._bitcoind_widget()
+        l = self._c_lightning_widget()
+
+        lines = [b, l]
+        return self._wrap_box(urwid.Pile(lines), "Daemons")
 
 
     def _block_id_widget(self):
@@ -241,8 +264,7 @@ class ScreenUI(object):
 
     def _build_widgets(self):
         fee = self._fee_estimate_widget()
-        eco = self._fee_estimate_eco_widget()
-        net = self._network_widget()
+        dae = self._daemon_widget()
         blk = self._block_widget()
 
         r = self._ram_widget()
@@ -253,8 +275,8 @@ class ScreenUI(object):
         sp = self._song_playing_widget()
         sq = self._song_queue_widget()
 
-        col1 = self._list_box([net, fee, eco])
-        col2 = self._list_box([blk, r, n, d, c])
+        col1 = self._list_box([dae, fee, blk])
+        col2 = self._list_box([r, n, d, c])
         col3 = self._list_box([sp, sq])
         cols = urwid.Columns([col1, col2, col3])
 

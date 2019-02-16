@@ -16,7 +16,7 @@ from block_listener import NewBlockQueue
 from system_resources import SystemResources
 from audio_player import AudioPlayer
 from jukebox import Jukebox
-from node_info import NodeInfo
+from node_info import NodeInfo, LnNodeInfo
 
 
 ###############################################################################
@@ -87,6 +87,9 @@ if __name__ == '__main__':
 
     ni = NodeInfo(r, sui)
     ni.run()
+
+    lni = LnNodeInfo(r, sui, args.lightning_rpc)
+    lni.run()
 
     j = Jukebox(r, sui, args.audio_dir, args.lightning_rpc)
     j.run()

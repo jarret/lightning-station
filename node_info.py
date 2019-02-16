@@ -2,6 +2,7 @@ import os
 
 from twisted.internet import threads
 from bitcoinrpc import Bitcoind
+from lightningd import LightningDaemon
 
 INTERVAL = 10.0
 
@@ -51,3 +52,39 @@ class NodeInfo(object):
 
     def run(self):
         self.reactor.callLater(2.0, self._poll_node_info_defer)
+
+
+###########################################################################
+
+class LnNodeInfo(object):
+    def __init__(self, reactor, screen_ui, lightning_rpc):
+        self.screen_ui = screen_ui
+        self.reactor = reactor
+        self.lightning_rpc = lightning_rpc
+
+    ###########################################################################
+
+    def _getinfo(lightning_rpc):
+        ld = LightningDaemon(lightning_rpc)
+        return ld.getinfo()
+
+    def _poll_ln_node_info_thread_func(lightning_rpc):
+        info = LnNodeInfo._getinfo(lightning_rpc)
+        return {'ln_version':   info['version'],
+                'ln_num_peers': info['num_peers'],
+                'ln_alias':     info['alias'],
+               }
+
+    def _poll_ln_node_info_callback(self, result):
+        self.screen_ui.update_info(result)
+        self.reactor.callLater(INTERVAL, self._poll_ln_node_info_defer)
+
+    def _poll_ln_node_info_defer(self):
+        d = threads.deferToThread(LnNodeInfo._poll_ln_node_info_thread_func,
+                                  self.lightning_rpc)
+        d.addCallback(self._poll_ln_node_info_callback)
+
+    ###########################################################################
+
+    def run(self):
+        self.reactor.callLater(2.0, self._poll_ln_node_info_defer)

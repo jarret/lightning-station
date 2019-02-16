@@ -6,8 +6,8 @@ import uuid
 from base64 import b64encode
 
 from twisted.internet import task, threads
-from lightning import LightningRpc
 
+from lightningd import LightningDaemon
 from audio_player import AudioPlayer
 from logger import log
 
@@ -16,29 +16,6 @@ EXPIRY = 60 * 60 * 24 # 24 hours
 SECONDS_TO_EXPIRY = 30
 
 CHECK_PERIOD = 1.0
-
-###############################################################################
-
-class Daemon(object):
-    def __init__(self, daemon_rpc):
-        self.rpc = LightningRpc(daemon_rpc)
-
-
-    def invoice_c_lightning(self, msatoshi, label, description):
-        result = self.rpc.invoice(msatoshi, label, description,
-                                  expiry=EXPIRY)
-        log(json.dumps(result, indent=1, sort_keys=True))
-        return result
-
-    def get_c_lightning_invoices(self):
-        result = self.rpc.listinvoices()
-        #log(json.dumps(result, indent=1, sort_keys=True))
-        return result
-
-    def delete(self, label):
-        result = self.rpc.delinvoice(label, "paid")
-        log(json.dumps(result, indent=1, sort_keys=True))
-        return result
 
 ###############################################################################
 
@@ -213,7 +190,7 @@ class Jukebox(object):
     ###########################################################################
 
     def _init_invoices(self):
-        daemon = Daemon(self.daemon_rpc)
+        daemon = LightningDaemon(self.daemon_rpc)
         for s in self.music_select.iter_songs():
             bolt11, expires, label = Jukebox._invoice(daemon, s['price'],
                                                       s['title'],
@@ -257,7 +234,7 @@ class Jukebox(object):
                 yield (old_label, new_label, bolt11, expires)
 
     def _check_paid_thread_func(daemon_rpc, thread_data):
-        daemon = Daemon(daemon_rpc)
+        daemon = LightningDaemon(daemon_rpc)
         invs = daemon.get_c_lightning_invoices()
         labels_to_check = set(d[0] for d in thread_data)
         paid = set(i['label'] for i in invs['invoices'] if
