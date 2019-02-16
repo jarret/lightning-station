@@ -20,38 +20,8 @@ from physical_ui import PhysicalUI
 from system_resources import SystemResources
 from audio_player import AudioPlayer
 from jukebox import Jukebox
+from node_info import NodeInfo
 
-
-###############################################################################
-
-FEE_RATE_BLOCKS = [1, 3, 6, 12, 25, 50, 100, 500]
-
-class NodeInfo(object):
-
-    def get_fee_rate(block):
-        rate = Bitcoind.estimatesmartfee(block)['feerate']
-        return rate * 100000.0
-
-    def get_fee_rate_eco(block):
-        rate = Bitcoind.estimatesmartfee_eco(block)['feerate']
-        return rate * 100000.0
-
-    def fetch():
-        mempool_info = Bitcoind.getmempoolinfo()
-        mempool_pct = ((mempool_info['usage'] / mempool_info['maxmempool']) *
-                       100.0)
-        network_info = Bitcoind.getnetworkinfo()
-        fee_estimate = {b: NodeInfo.get_fee_rate(b) for b in FEE_RATE_BLOCKS}
-        fee_estimate_eco = {b: NodeInfo.get_fee_rate_eco(b) for b in
-                            FEE_RATE_BLOCKS}
-        return {'mempool_txs':      mempool_info['size'],
-                'mempool_bytes':    mempool_info['usage'],
-                'mempool_percent':  mempool_pct,
-                'net_connections':  network_info['connections'],
-                'net_version':      network_info['subversion'],
-                'fee_estimate':     fee_estimate,
-                'fee_estimate_eco': fee_estimate_eco,
-               }
 
 ###############################################################################
 
@@ -63,16 +33,9 @@ class PeriodicUpdates(object):
     def _update_time(self):
         self.sui.update_info({'current_time': time.time()})
 
-    def _update_node_info(self):
-        node_info = NodeInfo.fetch()
-        self.sui.update_info(node_info)
-
     def run(self):
         t = task.LoopingCall(self._update_time)
         t.start(5.0)
-
-        l = task.LoopingCall(self._update_node_info)
-        l.start(10.0)
 
 
 ###############################################################################
@@ -126,6 +89,8 @@ if __name__ == '__main__':
     sr = SystemResources(r, sui, args.blockchain_dir, args.blockchain_device)
     sr.run()
 
+    ni = NodeInfo(r, sui)
+    ni.run()
 
     j = Jukebox(r, sui, args.audio_dir, args.lightning_rpc)
     j.run()

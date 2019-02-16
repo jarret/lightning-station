@@ -161,4 +161,4 @@ class PhysicalUI(object):
         self.draw_song(song)
 
     def run(self):
-        pass
+        self.reactor.callLater(2.0, self.button, BUTTON_1)
