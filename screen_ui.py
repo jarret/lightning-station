@@ -74,6 +74,10 @@ class ScreenUI(object):
         f = urwid.Filler(widget)
         return urwid.AttrMap(f, 'background')
 
+    def _list_box(self, widgets):
+        lb = urwid.ListBox(widgets)
+        return urwid.AttrMap(lb, 'background')
+
     ###########################################################################
 
     def _fee_estimate_widget(self):
@@ -183,7 +187,7 @@ class ScreenUI(object):
         rd = self._center_info_text(
             "Disk Read: {:,} bytes/s".format(self.info['disk_read']))
         wt = self._center_info_text(
-            "Disk write: {:,} bytes/s".format(self.info['disk_write']))
+            "Disk Write: {:,} bytes/s".format(self.info['disk_write']))
         d = self._center_info_text(
             "Blockchain Dir: {:,} bytes".format(self.info['dir_size']))
         lines = [rd, wt, d]
@@ -249,9 +253,9 @@ class ScreenUI(object):
         sp = self._song_playing_widget()
         sq = self._song_queue_widget()
 
-        col1 = self._wrap_filler(urwid.Pile([net, fee, eco]))
-        col2 = self._wrap_filler(urwid.Pile([blk, r, n, d, c]))
-        col3 = self._wrap_filler(urwid.Pile([sp, sq]))
+        col1 = self._list_box([net, fee, eco])
+        col2 = self._list_box([blk, r, n, d, c])
+        col3 = self._list_box([sp, sq])
         cols = urwid.Columns([col1, col2, col3])
 
         self.loop.widget = cols
