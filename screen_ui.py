@@ -5,9 +5,6 @@ import time
 from logger import log
 
 
-COLS = 130
-ROWS = 40
-
 PALETTE = [('info_text', 'black', 'light gray'),
            ('background', '', '', '', 'g7', '#f60'),
            ('title_text', 'white,underline', 'black', 'bold,underline'),
@@ -48,19 +45,12 @@ class ScreenUI(object):
                               event_loop=event_loop,
                               unhandled_input=self.exit_on_q)
         cols, rows = loop.screen.get_cols_rows()
-        #self._assert_terminal_size(cols, rows)
         loop.screen.set_terminal_properties(colors=256)
         return loop
 
     def exit_on_q(self, key):
         if key in ('q', 'Q'):
             raise urwid.ExitMainLoop()
-
-    def _assert_terminal_size(self, cols, rows):
-        s = "terminal size must be %dx%d, currently: %dx%d" % (
-            COLS, ROWS, cols, rows)
-        assert cols == COLS, s
-        assert rows == ROWS, s
 
     ###########################################################################
 
@@ -131,9 +121,7 @@ class ScreenUI(object):
         return self._wrap_box(urwid.Pile(lines), "Network")
 
 
-    def _block_widget(self):
-        if 'block_name' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no block data)")
+    def _block_id_widget(self):
         h = self._center_info_text("height: %d" %
                                     self.info['block_height'])
         bn = self._center_info_text("name: %s" %
@@ -142,6 +130,22 @@ class ScreenUI(object):
         arrival = self.info['block_arrival_time']
         at = self._center_info_text(
             "arrival: %s" % self._fmt_timestamp(arrival))
+        lines = [h, bn, p, at]
+        return self._wrap_box(urwid.Pile(lines), "ID")
+
+    def _block_widget(self):
+        if 'block_name' not in self.info:
+            return self._wrap_box(urwid.Pile([]), "(no block data)")
+
+        i = self._block_id_widget()
+        #h = self._center_info_text("height: %d" %
+        #                            self.info['block_height'])
+        #bn = self._center_info_text("name: %s" %
+        #                             self.info['block_name'])
+        #p = self._center_info_text(self.info['block_phrase'])
+        #arrival = self.info['block_arrival_time']
+        #at = self._center_info_text(
+        #    "arrival: %s" % self._fmt_timestamp(arrival))
         tx = self._center_info_text(
             "txs: {:,}".format(self.info['block_n_txes']))
 
@@ -154,7 +158,7 @@ class ScreenUI(object):
         elapsed = time.time() - self.info['block_arrival_time']
         e = self._center_info_text("elapsed: %s" % self._fmt_seconds(elapsed))
 
-        lines = [h, bn, p, at, tx, s, w, t, e]
+        lines = [i, tx, s, w, t, e]
         return self._wrap_box(urwid.Pile(lines), "Block")
 
     def _websocket_widget(self):
