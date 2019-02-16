@@ -12,11 +12,7 @@ from twisted.internet import reactor, task
 from screen_ui import ScreenUI
 from bitcoinrpc import Bitcoind
 from logger import log, setup_log
-from serve_web import ServeWeb
-from serve_websocket import ServeWebsocket
 from block_listener import NewBlockQueue
-from web_eink_ui import WebEinkUI
-from physical_ui import PhysicalUI
 from system_resources import SystemResources
 from audio_player import AudioPlayer
 from jukebox import Jukebox
@@ -96,12 +92,16 @@ if __name__ == '__main__':
     j.run()
 
     if args.websocket:
+        from serve_web import ServeWeb
+        from serve_websocket import ServeWebsocket
+        from web_eink_ui import WebEinkUI
         weui = WebEinkUI()
         sw = ServeWeb(r)
         sw.run()
         sws = ServeWebsocket(r, sui, weui, j)
         sws.run()
     else:
+        from physical_ui import PhysicalUI
         pui = PhysicalUI(r, sui, j)
         pui.run()
 
