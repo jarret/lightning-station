@@ -263,8 +263,8 @@ class ScreenUI(object):
     ###########################################################################
 
     def _build_widgets(self):
-        fee = self._fee_estimate_widget()
         dae = self._daemon_widget()
+        fee = self._fee_estimate_widget()
         blk = self._block_widget()
 
         r = self._ram_widget()
@@ -275,9 +275,9 @@ class ScreenUI(object):
         sp = self._song_playing_widget()
         sq = self._song_queue_widget()
 
-        col1 = self._list_box([dae, fee, blk])
+        col1 = self._list_box([dae, fee])
         col2 = self._list_box([r, n, d, c])
-        col3 = self._list_box([sp, sq])
+        col3 = self._list_box([blk, sp, sq])
         cols = urwid.Columns([col1, col2, col3])
 
         self.loop.widget = cols
