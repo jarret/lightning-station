@@ -7,7 +7,7 @@ to get it working:
 $ git clone https://git.savannah.gnu.org/git/screen.git
 ```
 
-2) compile with flag - needs libpam(something)-dev
+2) compile with flag - needs libpam0g-dev
 
 ```
 $ ./autogen.sh

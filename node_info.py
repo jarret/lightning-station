@@ -71,7 +71,7 @@ class LnNodeInfo(object):
     def _poll_ln_node_info_thread_func(lightning_rpc):
         info = LnNodeInfo._getinfo(lightning_rpc)
         return {'ln_version':   info['version'],
-                #'ln_num_peers': info['num_peers'],
+                'ln_num_peers': info['num_peers'],
                 'ln_alias':     info['alias'],
                }
 

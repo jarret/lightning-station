@@ -4,15 +4,27 @@ import json
 import time
 from logger import log
 
+BACK = "#f60"
+PANEL = "#fa0"
+PANEL_ALT = "#f8d"
+PANEL_ALT_2 = "#0ad"
+PANEL_ALT_3 = "#f00"
+PANEL_ALT_4 = "#0a0"
 
 PALETTE = [
            #('info_text', 'black', 'light gray'),
            ('info_text', '', '', '', '#fff,bold', 'g7'),
-           ('background', '', '', '', 'g7,bold', '#f60'),
-           ('panel_box', '', '', '', 'g7,bold', '#fa0'),
+           ('background', '', '', '', 'g7,bold', "g7"),
+           ('panel_box', '', '', '', 'g7,bold', PANEL),
+           ('panel_box_alt', '', '', '', 'g11,bold', PANEL_ALT),
+           ('panel_box_alt_2', '', '', '', 'g11,bold', PANEL_ALT_2),
+           ('panel_box_alt_3', '', '', '', 'g11,bold', PANEL_ALT_3),
+           ('panel_box_alt_4', '', '', '', 'g11,bold', PANEL_ALT_4),
            ('title_text', 'white,underline', 'black', 'bold,underline'),
-           ('pb_normal', '', '', '', '#0df', '#860'),
-           ('pb_complete',  '', '', '', '#860', '#0df'),
+           ('unit_text', '', '', '', '#fff', 'g7'),
+           ('label_text', '', '', '', 'g78', 'g7'),
+           ('pb_normal', '', '', '', 'g19', BACK),
+           ('pb_complete',  '', '', '', BACK, 'g19'),
           ]
 
 
@@ -34,6 +46,9 @@ class ScreenUI(object):
     def _center_info_text(self, string):
         return urwid.Text(('info_text', " %s " % string), align='center')
 
+    def _center_info_text_2(self, string):
+        return urwid.Text(('info_text', "%s" % string), align='center')
+
     def _right_info_text(self, string):
         return urwid.Text(('info_text', "%s" % string), align='right')
 
@@ -49,6 +64,12 @@ class ScreenUI(object):
     def _progress_bar(self, pct):
         return urwid.ProgressBar('pb_normal', 'pb_complete', current=pct,
                                  done=100)
+
+    def _stat_line(self, label, value, unit=None):
+        mu = [('label_text', " %s: " % label), ('info_text', "%s " % value)]
+        if unit:
+            mu.append(('unit_text', "%s " % unit))
+        return urwid.Text(mu, align='center')
 
     ###########################################################################
 
@@ -85,6 +106,26 @@ class ScreenUI(object):
         f = urwid.Filler(lb)
         return urwid.AttrMap(lb, 'panel_box')
 
+    def _wrap_box_alt(self, widget, title):
+        lb = urwid.LineBox(widget, title=title)
+        f = urwid.Filler(lb)
+        return urwid.AttrMap(lb, 'panel_box_alt')
+
+    def _wrap_box_alt_2(self, widget, title):
+        lb = urwid.LineBox(widget, title=title)
+        f = urwid.Filler(lb)
+        return urwid.AttrMap(lb, 'panel_box_alt_2')
+
+    def _wrap_box_alt_3(self, widget, title):
+        lb = urwid.LineBox(widget, title=title)
+        f = urwid.Filler(lb)
+        return urwid.AttrMap(lb, 'panel_box_alt_3')
+
+    def _wrap_box_alt_4(self, widget, title):
+        lb = urwid.LineBox(widget, title=title)
+        f = urwid.Filler(lb)
+        return urwid.AttrMap(lb, 'panel_box_alt_4')
+
     def _wrap_filler(self, widget):
         f = urwid.Filler(widget)
         return urwid.AttrMap(f, 'background')
@@ -103,14 +144,14 @@ class ScreenUI(object):
 
         blocks = sorted(self.info['fee_estimate'].keys())
 
-        b_row = ["Blks "]
+        b_row = [" Blks "]
         b_row += [str(b) for b in blocks]
 
-        c_row = ["Norm "]
+        c_row = [" Norm "]
         c_row += [str(int(round(self.info['fee_estimate'][b]))) for b in
                   blocks]
 
-        e_row = ["Econ "]
+        e_row = [" Econ "]
         e_row += [str(int(round(self.info['fee_estimate_eco'][b]))) for b in
                   blocks]
 
@@ -127,64 +168,65 @@ class ScreenUI(object):
             c_strs.append(fmt % c)
             e_strs.append(fmt % e)
 
-        b_str = self._left_title_text(" ".join(b_strs))
-        c_str = self._left_info_text(" ".join(c_strs))
-        e_str = self._left_info_text(" ".join(e_strs))
+        b_str = self._center_title_text(" ".join(b_strs) + " ")
+        c_str = self._center_info_text_2(" ".join(c_strs) + " ")
+        e_str = self._center_info_text_2(" ".join(e_strs) + " ")
         lines = [b_str, c_str, e_str]
 
-        return self._wrap_box(urwid.Pile(lines), "Fee Estimates (sat/byte)")
+        return self._wrap_box_alt_2(urwid.Pile(lines), "Fee Estimates (sat/byte)")
 
     def _bitcoind_widget(self):
         if 'net_connections' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no bitcoind data)")
         v = self._center_info_text("%s" % self.info['net_version'])
-        c = self._center_info_text("peers: %d" % self.info['net_connections'])
+        c = self._stat_line("Peers", str(self.info['net_connections']))
         lines = [v, c]
-        return self._wrap_box(urwid.Pile(lines), "bitcoind")
+        return self._wrap_box_alt(urwid.Pile(lines), "bitcoind")
 
     def _c_lightning_widget(self):
         if 'ln_version' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no lightning node data)")
-        a = self._center_info_text("Alias: %s" % self.info['ln_alias'])
-        v = self._center_info_text("Version: %s" % self.info['ln_version'])
-        #p = self._center_info_text("Peers: %d" % self.info['ln_num_peers'])
-        lines = [a, v]
-        return self._wrap_box(urwid.Pile(lines), "c-lightning")
+        a = self._stat_line("Alias", self.info['ln_alias'])
+        v = self._stat_line("Version", self.info['ln_version'])
+        p = self._stat_line("Peers", self.info['ln_num_peers'])
+        lines = [a, v, p]
+        return self._wrap_box_alt(urwid.Pile(lines), "c-lightning")
 
     def _daemon_widget(self):
         b = self._bitcoind_widget()
         l = self._c_lightning_widget()
 
         lines = [b, l]
-        return self._wrap_box(urwid.Pile(lines), "Daemons")
+        return self._wrap_box_alt(urwid.Pile(lines), "Daemons")
 
 
     def _block_id_widget(self):
-        h = self._center_info_text("Height: %d" %
-                                    self.info['block_height'])
-        bn = self._center_info_text("Name: %s" % self.info['block_name'])
-        arrival = self.info['block_arrival_time']
-        at = self._center_info_text(
-            "Arrive Time: %s" % self._fmt_timestamp(arrival))
-        t = self._center_info_text(
-            "Miner Time: %s" %
-            self._fmt_timestamp(self.info['block_timestamp']))
+        h = self._stat_line("Height", str(self.info['block_height']))
+        bn = self._stat_line("Name", self.info['block_name'])
+        arrival = self._fmt_timestamp(self.info['block_arrival_time'])
+        at = self._stat_line("Arrive Time", arrival, "UTC")
+        miner = self._fmt_timestamp(self.info['block_timestamp'])
+        t = self._stat_line("Miner Time", miner, "UTC")
         lines = [h, bn, at, t]
-        return self._wrap_box(urwid.Pile(lines), "Block ID")
+        return self._wrap_box_alt_2(urwid.Pile(lines), "Block ID")
+
 
     def _block_stat_widget(self):
-        tx = self._center_info_text(
-            "TXs in Block: {:,}".format(self.info['block_n_txes']))
+        tx = self._stat_line("In Block",
+                             "{:,}".format(self.info['block_n_txes']),
+                             "txs")
 
-        s = self._center_info_text(
-            "Block Size: {:,} bytes".format(self.info['block_size']))
-        w = self._center_info_text(
-            "Block Weight: {:,} bytes".format(self.info['block_weight']))
+        s = self._stat_line("Block Size",
+                            "{:,}".format(self.info['block_size']),
+                            "bytes")
+        w = self._stat_line("Block Weight",
+                            "{:,}".format(self.info['block_weight']),
+                            "bytes")
         elapsed = time.time() - self.info['block_arrival_time']
         e = self._center_info_text("%s since last block" %
                                    self._fmt_seconds(elapsed))
         lines = [tx, s, w, e]
-        return self._wrap_box(urwid.Pile(lines), "Block Stats")
+        return self._wrap_box_alt_2(urwid.Pile(lines), "Block Stats")
 
     def _block_widget(self):
         if 'block_name' not in self.info:
@@ -192,27 +234,29 @@ class ScreenUI(object):
         i = self._block_id_widget()
         s = self._block_stat_widget()
         lines = [i, s]
-        return self._wrap_box(urwid.Pile(lines), "")
+        return self._wrap_box_alt_2(urwid.Pile(lines), "")
 
     def _phrase_widget(self):
         if 'block_phrase' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no block data)")
+            return self._wrap_box_alt_4(urwid.Pile([]), "(no block data)")
         p = self._center_info_text(self.info['block_phrase'])
         lines = [p]
-        return self._wrap_box(urwid.Pile(lines), "")
+        return self._wrap_box_alt_4(urwid.Pile(lines), "")
 
     def _ram_widget(self):
         if 'mempool_txs' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no mempool data)")
         if 'mem_total' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no ram data)")
-        r = self._center_info_text(
-            "RAM Total: {:,} bytes".format(self.info['mem_total']))
+        r = self._stat_line("RAM Total", "{:,}".format(self.info['mem_total']),
+                             "bytes")
         ru = self._progress_bar(self.info['mem_used_pct'])
-        t = self._center_info_text(
-            "Mempool TXs: {:,}".format(self.info['mempool_txs']))
-        b = self._center_info_text("Mempool Bytes: {:,}".format(
-            self.info['mempool_bytes']))
+        t = self._stat_line("Mempool",
+                            "{:,}".format(self.info['mempool_txs']),
+                            "txs")
+        b = self._stat_line("Mempool Size",
+                            "{:,}".format(self.info['mempool_bytes']),
+                            "bytes")
         mu = self._progress_bar(self.info['mempool_percent'])
 
         lines = [r, ru, t, b, mu]
@@ -221,13 +265,15 @@ class ScreenUI(object):
     def _net_widget(self):
         if 'net_send' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no network data)")
-        s = self._center_info_text(
-            "Send: {:,} bytes/s".format(self.info['net_send']))
-        r = self._center_info_text(
-            "Recv: {:,} bytes/s".format(self.info['net_recv']))
+        s = self._stat_line("Send",
+                            "{:,}".format(self.info['net_send']),
+                            "byte/s")
+        r = self._stat_line("Recv",
+                            "{:,}".format(self.info['net_recv']),
+                            "byte/s")
         lines = []
         if 'ip_address' in self.info:
-            i = self._center_info_text("LAN IP: %s" % self.info['ip_address'])
+            i = self._stat_line("LAN IP", self.info['ip_address'])
             lines = [s, r, i]
         else:
             lines = [s, r]
@@ -237,13 +283,16 @@ class ScreenUI(object):
     def _disk_widget(self):
         if 'disk_read' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no disk data)")
-        rd = self._center_info_text(
-            " Read: {:,} bytes/s".format(self.info['disk_read']))
-        wt = self._center_info_text(
-            "Write: {:,} bytes/s".format(self.info['disk_write']))
-        d = self._center_info_text(
-            "Blockchain Dir: {:,} bytes".format(self.info['dir_size']))
-        lines = [rd, wt, d]
+        rd = self._stat_line("Read",
+                             "{:,}".format(self.info['disk_read']),
+                             "byte/s")
+        wt = self._stat_line("Write",
+                             "{:,}".format(self.info['disk_write']),
+                             "byte/s")
+        b = self._stat_line("Blockchain",
+                            "{:,}".format(self.info['dir_size']),
+                            "bytes")
+        lines = [rd, wt, b]
         return self._wrap_box(urwid.Pile(lines), "Disk")
 
     def _cpu_widget(self):
@@ -257,22 +306,20 @@ class ScreenUI(object):
 
     def _song_playing_widget(self):
         if 'song_playing_title' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no song playing)")
+            return self._wrap_box_alt_3(urwid.Pile([]), "(no song playing)")
         if not self.info['song_playing_title']:
-            return self._wrap_box(urwid.Pile([]), "(no song playing)")
-        st = self._center_info_text(
-            "Title: %s" % self.info['song_playing_title'])
-        sa = self._center_info_text(
-            "Artist: %s" % self.info['song_playing_artist'])
+            return self._wrap_box_alt_3(urwid.Pile([]), "(no song playing)")
+        st = self._stat_line("Title", self.info['song_playing_title'])
+        sa = self._stat_line("Artist", self.info['song_playing_artist'])
         lines = [st, sa]
-        return self._wrap_box(urwid.Pile(lines), "Now Playing")
+        return self._wrap_box_alt_3(urwid.Pile(lines), "Now Playing")
 
     def _song_queue_widget(self):
         if 'queued_songs' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no songs queued)")
+            return self._wrap_box_alt_3(urwid.Pile([]), "(no songs queued)")
         n = len(self.info['queued_songs'])
         if n == 0:
-            return self._wrap_box(urwid.Pile([]), "(no songs queued)")
+            return self._wrap_box_alt_3(urwid.Pile([]), "(no songs queued)")
 
         showing = min(n, 5)
         not_showing = (n - 5) if (n > 5) else 0
@@ -288,7 +335,7 @@ class ScreenUI(object):
         if not_showing != 0:
             m = self._center_info_text("(%d more)" % not_showing)
             lines.append(m)
-        return self._wrap_box(urwid.Pile(lines), "Song Queue")
+        return self._wrap_box_alt_3(urwid.Pile(lines), "Song Queue")
 
     ###########################################################################
 
