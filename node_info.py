@@ -6,7 +6,7 @@ from lightningd import LightningDaemon
 
 INTERVAL = 10.0
 
-FEE_RATE_BLOCKS = [1, 3, 6, 12, 25, 50, 100, 500]
+FEE_RATE_BLOCKS = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 
 class NodeInfo(object):
     def __init__(self, reactor, screen_ui):
