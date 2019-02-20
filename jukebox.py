@@ -250,7 +250,7 @@ class Jukebox(object):
             daemon.delete(l)
         for l in iter(expired):
             log("expire deleting: %s" % l)
-            daemon.delete(l)
+            daemon.delete(l, state="expired")
         return (paid, renews)
 
     def _check_paid_callback(self, result):

@@ -24,8 +24,8 @@ class LightningDaemon(object):
         #log(json.dumps(result, indent=1, sort_keys=True))
         return result
 
-    def delete(self, label):
-        result = self.rpc.delinvoice(label, "paid")
+    def delete(self, label, state="paid"):
+        result = self.rpc.delinvoice(label, state)
         log(json.dumps(result, indent=1, sort_keys=True))
         return result
 
