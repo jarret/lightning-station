@@ -6,7 +6,7 @@ import time
 from logger import log
 
 LIGHT_ORANGE = "#fa0"
-DARK_ORANGE = "#f60"
+DARK_ORANGE = "#f80"
 
 LIGHT_BLUE = "#0ff"
 DARK_BLUE = "#00d"
@@ -15,7 +15,7 @@ LIGHT_GREEN = "#0f0"
 DARK_GREEN = "#080"
 
 LIGHT_RED = "#f68"
-DARK_RED = "#f00"
+DARK_RED = "#d00"
 
 LIGHT_PURPLE = "#d6a"
 DARK_PURPLE = "#a0f"
@@ -23,37 +23,48 @@ DARK_PURPLE = "#a0f"
 LIGHT_YELLOW = "#ff6"
 DARK_YELLOW = "#fd0"
 
+BLACK = "g0"
+WHITE = "g100"
+
+LIGHT_GREY = "g82"
+DARK_GREY = "g19"
+
 PALETTE = [
-           ('background', '', '', '', 'g7', "g7"),
+           ('background', '', '', '', 'g38', "g38"),
 
-           ('info_text', '', '', '', '#fff', 'g7'),
-           ('title_text', '', '', '', 'g78', 'g7'),
-           ('unit_text', '', '', '', 'g78', 'g7'),
-           ('label_text', '', '', '', 'g78', 'g7'),
+           ('emph_text', '', '', '', WHITE, BLACK),
 
-           ('orange', '', '', '', 'g0', DARK_ORANGE),
+           ('title_text', '', '', '', 'g78', BLACK),
+           ('unit_text', '', '', '', 'g78', BLACK),
+           ('label_text', '', '', '', 'g78', BLACK),
+
+           ('orange', '', '', '', BLACK, DARK_ORANGE),
            ('progress_orange_n', '', '', '', 'g19', LIGHT_ORANGE),
            ('progress_orange_c',  '', '', '', LIGHT_ORANGE, 'g19'),
 
-           ('blue', '', '', '', 'g100', DARK_BLUE),
+           ('blue', '', '', '', WHITE, DARK_BLUE),
            ('progress_blue_n', '', '', '', 'g19', LIGHT_BLUE),
            ('progress_blue_c',  '', '', '', LIGHT_BLUE, 'g19'),
 
-           ('green', '', '', '', 'g100', DARK_GREEN),
+           ('green', '', '', '', WHITE, DARK_GREEN),
            ('progress_green_n', '', '', '', 'g19', LIGHT_GREEN),
            ('progress_green_c',  '', '', '', LIGHT_GREEN, 'g19'),
 
-           ('red', '', '', '', 'g100', DARK_RED),
+           ('red', '', '', '', WHITE, DARK_RED),
            ('progress_red_n', '', '', '', 'g19', LIGHT_RED),
            ('progress_red_c',  '', '', '', LIGHT_RED, 'g19'),
 
-           ('purple', '', '', '', 'g100', DARK_PURPLE),
+           ('purple', '', '', '', WHITE, DARK_PURPLE),
            ('progress_purple_n', '', '', '', 'g19', LIGHT_PURPLE),
            ('progress_purple_c',  '', '', '', LIGHT_PURPLE, 'g19'),
 
-           ('yellow', '', '', '', 'g0', DARK_YELLOW),
+           ('yellow', '', '', '', BLACK, DARK_YELLOW),
            ('progress_yellow_n', '', '', '', 'g19', LIGHT_YELLOW),
            ('progress_yellow_c',  '', '', '', LIGHT_YELLOW, 'g19'),
+
+           ('grey', '', '', '', WHITE, DARK_GREY),
+           ('progress_grey_n', '', '', '', 'g19', LIGHT_GREY),
+           ('progress_grey_c',  '', '', '', LIGHT_GREY, 'g19'),
           ]
 
 
@@ -61,7 +72,7 @@ ORANGE_THEME = {
     'panel':      'orange',
     'progress_n': 'progress_orange_n',
     'progress_c': 'progress_orange_c',
-    'info_text':  'info_text',
+    'emph_text':  'emph_text',
     'title_text': 'title_text',
     'label_text': 'label_text',
     'unit_text':  'unit_text',
@@ -71,7 +82,7 @@ BLUE_THEME = {
     'panel':      'blue',
     'progress_n': 'progress_blue_n',
     'progress_c': 'progress_blue_c',
-    'info_text':  'info_text',
+    'emph_text':  'emph_text',
     'title_text': 'title_text',
     'label_text': 'label_text',
     'unit_text':  'unit_text',
@@ -81,7 +92,7 @@ GREEN_THEME = {
     'panel':      'green',
     'progress_n': 'progress_green_n',
     'progress_c': 'progress_green_c',
-    'info_text':  'info_text',
+    'emph_text':  'emph_text',
     'title_text': 'title_text',
     'label_text': 'label_text',
     'unit_text':  'unit_text',
@@ -91,7 +102,7 @@ RED_THEME = {
     'panel':      'red',
     'progress_n': 'progress_red_n',
     'progress_c': 'progress_red_c',
-    'info_text':  'info_text',
+    'emph_text':  'emph_text',
     'title_text': 'title_text',
     'label_text': 'label_text',
     'unit_text':  'unit_text',
@@ -101,7 +112,7 @@ PURPLE_THEME = {
     'panel':      'purple',
     'progress_n': 'progress_purple_n',
     'progress_c': 'progress_purple_c',
-    'info_text':  'info_text',
+    'emph_text':  'emph_text',
     'title_text': 'title_text',
     'label_text': 'label_text',
     'unit_text':  'unit_text',
@@ -111,7 +122,17 @@ YELLOW_THEME = {
     'panel':      'yellow',
     'progress_n': 'progress_yellow_n',
     'progress_c': 'progress_yellow_c',
-    'info_text':  'info_text',
+    'emph_text':  'emph_text',
+    'title_text': 'title_text',
+    'label_text': 'label_text',
+    'unit_text':  'unit_text',
+}
+
+GREY_THEME = {
+    'panel':      'grey',
+    'progress_n': 'progress_grey_n',
+    'progress_c': 'progress_grey_c',
+    'emph_text':  'emph_text',
     'title_text': 'title_text',
     'label_text': 'label_text',
     'unit_text':  'unit_text',
@@ -133,11 +154,11 @@ class ScreenUI(object):
 
     ###########################################################################
 
-    def _center_info_text(self, string, theme):
-        return urwid.Text((theme['info_text'], " %s " % string), align='center')
+    def _center_emph_text(self, string, theme):
+        return urwid.Text((theme['emph_text'], " %s " % string), align='center')
 
-    def _center_info_text_2(self, string, theme):
-        return urwid.Text((theme['info_text'], "%s" % string), align='center')
+    def _center_emph_text_2(self, string, theme):
+        return urwid.Text((theme['emph_text'], "%s" % string), align='center')
 
     def _center_title_text(self, string, theme):
         return urwid.Text((theme['title_text'], string), align='center')
@@ -148,11 +169,11 @@ class ScreenUI(object):
 
     def _stat_line(self, label, value, unit, theme):
         mu = []
-        if label:
+        if label != None:
             mu.append((theme['label_text'], " %s: " % label))
-        if value:
-            mu.append((theme['info_text'], "%s " % value))
-        if unit:
+        if value != None:
+            mu.append((theme['emph_text'], "%s " % value))
+        if unit != None:
             mu.append((theme['unit_text'], "%s " % unit))
         return urwid.Text(mu, align='center')
 
@@ -235,8 +256,8 @@ class ScreenUI(object):
             e_strs.append(fmt % e)
 
         b_str = self._center_title_text(" ".join(b_strs) + " ", theme)
-        c_str = self._center_info_text_2(" ".join(c_strs) + " ", theme)
-        e_str = self._center_info_text_2(" ".join(e_strs) + " ", theme)
+        c_str = self._center_emph_text(" ".join(c_strs) + " ", theme)
+        e_str = self._center_emph_text(" ".join(e_strs) + " ", theme)
         lines = [b_str, c_str, e_str]
 
         return self._line_pile_box(lines, "Fee Estimates (sat/byte)", theme)
@@ -266,7 +287,7 @@ class ScreenUI(object):
     def _bitcoind_widget(self, theme):
         if 'net_connections' not in self.info:
             return self._dummy_box("(no bitcoind data)", theme)
-        v = self._center_info_text("%s" % self.info['net_version'], theme)
+        v = self._center_emph_text("%s" % self.info['net_version'], theme)
         c = self._stat_line("Peers", str(self.info['net_connections']), None,
                             theme)
         lines = [v, c]
@@ -309,7 +330,7 @@ class ScreenUI(object):
                             "{:,}".format(self.info['block_weight']),
                             "bytes", theme)
         elapsed = time.time() - self.info['block_arrival_time']
-        e = self._center_info_text("%s since last block" %
+        e = self._center_emph_text("%s since last block" %
                                    self._fmt_seconds(elapsed), theme)
         lines = [tx, s, w, e]
         return self._line_pile_box(lines, "Block Stats", theme)
@@ -317,7 +338,7 @@ class ScreenUI(object):
     def _phrase_widget(self, theme):
         if 'block_phrase' not in self.info:
             return self._dummy_box("(no block data)", theme)
-        p = self._center_info_text(self.info['block_phrase'], theme)
+        p = self._center_emph_text(self.info['block_phrase'], theme)
         lines = [p]
         return self._line_pile_box(lines, "", theme)
 
@@ -346,10 +367,9 @@ class ScreenUI(object):
         lines = []
         if 'ip_address' in self.info:
             i = self._stat_line("LAN IP", self.info['ip_address'], None, theme)
-            lines = [s, r, i]
+            lines = [i, s, r]
         else:
             lines = [s, r]
-
         return self._line_pile_box(lines, "Network", theme)
 
     def _disk_widget(self, theme):
@@ -399,38 +419,39 @@ class ScreenUI(object):
         songs = self.info['queued_songs']
         for i in range(showing):
             song = songs[i]
-            t = self._center_info_text("%d) Title: %s" % (i + 1, song['title']),
+            t = self._center_emph_text("%d) Title: %s" % (i + 1, song['title']),
                                        theme)
             lines.append(t)
-            a = self._center_info_text("   Artist: %s" % song['artist'], theme)
+            a = self._center_emph_text("   Artist: %s" % song['artist'], theme)
             lines.append(a)
         if not_showing != 0:
-            m = self._center_info_text("(%d more)" % not_showing, theme)
+            m = self._center_emph_text("(%d more)" % not_showing, theme)
             lines.append(m)
         return self._line_pile_box(lines, "Song Queue", theme)
 
     ###########################################################################
 
     def _build_widgets(self):
-        bd = self._bitcoind_widget(RED_THEME)
-        ld = self._c_lightning_widget(BLUE_THEME)
-        fee = self._fee_estimate_widget(PURPLE_THEME)
-        bi = self._block_id_widget(BLUE_THEME)
-        bs = self._block_stat_widget(ORANGE_THEME)
-
-        r = self._ram_widget(BLUE_THEME)
-        n = self._net_widget(GREEN_THEME)
-        d = self._disk_widget(BLUE_THEME)
-        c = self._cpu_widget(YELLOW_THEME)
-
+        ph = self._phrase_widget(YELLOW_THEME)
+        bd = self._bitcoind_widget(GREY_THEME)
+        ld = self._c_lightning_widget(GREY_THEME)
         sp = self._song_playing_widget(BLUE_THEME)
-        sq = self._song_queue_widget(ORANGE_THEME)
-        ph = self._phrase_widget(BLUE_THEME)
-        l = self._ledger_widget(ORANGE_THEME)
+        sq = self._song_queue_widget(BLUE_THEME)
 
-        col1 = self._list_box([bd, ld, fee, ph, sp, sq])
-        col2 = self._list_box([r, n, d, c])
-        col3 = self._list_box([bi, bs, l])
+        col1 = self._list_box([ph, bd, ld, sp, sq])
+
+        bi = self._block_id_widget(ORANGE_THEME)
+        bs = self._block_stat_widget(ORANGE_THEME)
+        l = self._ledger_widget(PURPLE_THEME)
+        fee = self._fee_estimate_widget(PURPLE_THEME)
+        col2 = self._list_box([bi, bs, l, fee])
+
+        c = self._cpu_widget(RED_THEME)
+        r = self._ram_widget(RED_THEME)
+        d = self._disk_widget(GREEN_THEME)
+        n = self._net_widget(GREEN_THEME)
+        col3 = self._list_box([c, r, d, n])
+
         cols = urwid.Columns([col1, col2, col3])
 
         self.loop.widget = cols
