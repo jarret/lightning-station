@@ -25,7 +25,36 @@ PALETTE = [
            ('label_text', '', '', '', 'g78', 'g7'),
            ('pb_normal', '', '', '', 'g19', BACK),
            ('pb_complete',  '', '', '', BACK, 'g19'),
+
+           ('orange', '', '', '', 'g0', '#fa0'),
+           ('progress_orange_n', '', '', '', 'g19','#fa0'),
+           ('progress_orange_c',  '', '', '','#fa0', 'g19'),
+
+           ('blue', '', '', '', 'g0', '#0ad'),
+           ('progress_blue_n', '', '', '', 'g19', '#0ad'),
+           ('progress_blue_c',  '', '', '', '#0ad', 'g19'),
           ]
+
+
+ORANGE_THEME = {
+    'panel':      'orange',
+    'progress_n': 'progress_orange_n',
+    'progress_c': 'progress_orange_c',
+    'info_text':  'info_text',
+    'title_text': 'title_text',
+    'label_text': 'label_text',
+    'unit_text':  'unit_text',
+}
+
+BLUE_THEME = {
+    'panel':      'blue',
+    'progress_n': 'progress_blue_n',
+    'progress_c': 'progress_blue_c',
+    'info_text':  'info_text',
+    'title_text': 'title_text',
+    'label_text': 'label_text',
+    'unit_text':  'unit_text',
+}
 
 
 class ScreenUI(object):
@@ -101,34 +130,15 @@ class ScreenUI(object):
 
     ###########################################################################
 
-    def _wrap_box(self, widget, title):
+    def _wrap_box(self, widget, title, theme=ORANGE_THEME):
         lb = urwid.LineBox(widget, title=title)
-        f = urwid.Filler(lb)
-        return urwid.AttrMap(lb, 'panel_box')
+        return urwid.AttrMap(lb, theme['panel'])
 
-    def _wrap_box_alt(self, widget, title):
-        lb = urwid.LineBox(widget, title=title)
-        f = urwid.Filler(lb)
-        return urwid.AttrMap(lb, 'panel_box_alt')
+    def _dummy_box(self, title, theme):
+        return self._wrap_box(urwid.Pile([]), title, theme)
 
-    def _wrap_box_alt_2(self, widget, title):
-        lb = urwid.LineBox(widget, title=title)
-        f = urwid.Filler(lb)
-        return urwid.AttrMap(lb, 'panel_box_alt_2')
-
-    def _wrap_box_alt_3(self, widget, title):
-        lb = urwid.LineBox(widget, title=title)
-        f = urwid.Filler(lb)
-        return urwid.AttrMap(lb, 'panel_box_alt_3')
-
-    def _wrap_box_alt_4(self, widget, title):
-        lb = urwid.LineBox(widget, title=title)
-        f = urwid.Filler(lb)
-        return urwid.AttrMap(lb, 'panel_box_alt_4')
-
-    def _wrap_filler(self, widget):
-        f = urwid.Filler(widget)
-        return urwid.AttrMap(f, 'background')
+    def _line_pile_box(self, lines, title, theme):
+        return self._wrap_box(urwid.Pile(lines), title, theme)
 
     def _list_box(self, widgets):
         lb = urwid.ListBox(widgets)
@@ -136,11 +146,11 @@ class ScreenUI(object):
 
     ###########################################################################
 
-    def _fee_estimate_widget(self):
+    def _fee_estimate_widget(self, theme):
         if 'fee_estimate' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no fee estimates)")
+            return self._dummy_box("(no fee estimates)", theme)
         if 'fee_estimate_eco' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no eco fee estimates)")
+            return self._dummy_box("(no eco fee estimates)", theme)
 
         blocks = sorted(self.info['fee_estimate'].keys())
 
@@ -173,14 +183,13 @@ class ScreenUI(object):
         e_str = self._center_info_text_2(" ".join(e_strs) + " ")
         lines = [b_str, c_str, e_str]
 
-        return self._wrap_box_alt_2(urwid.Pile(lines),
-                                    "Fee Estimates (sat/byte)")
+        return self._line_pile_box(lines, "Fee Estimates (sat/byte)", theme)
 
-    def _ledger_widget(self):
+    def _ledger_widget(self, theme):
         if 'dir_size' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no ledger data)")
+            return self._dummy_box("(no ledger data)", theme)
         if 'mempool_txs' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no mempool data)")
+            return self._dummy_box("(no mempool data)", theme)
 
         t = self._stat_line("Mempool",
                             "{:,}".format(self.info['mempool_txs']),
@@ -196,28 +205,28 @@ class ScreenUI(object):
                             "{:,}".format(self.info['dir_size']),
                             "bytes")
         lines = [t, s, m, mu, b]
-        return self._wrap_box_alt(urwid.Pile(lines), "Ledger")
+        return self._line_pile_box(lines, "Ledger", theme)
 
-    def _bitcoind_widget(self):
+    def _bitcoind_widget(self, theme):
         if 'net_connections' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no bitcoind data)")
+            return self._dummy_box("(no bitcoind data)", theme)
         v = self._center_info_text("%s" % self.info['net_version'])
         c = self._stat_line("Peers", str(self.info['net_connections']))
         lines = [v, c]
-        return self._wrap_box_alt(urwid.Pile(lines), "bitcoind")
+        return self._line_pile_box(lines, "bitcoind", theme)
 
-    def _c_lightning_widget(self):
+    def _c_lightning_widget(self, theme):
         if 'ln_version' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no lightning node data)")
+            return self._dummy_box("(no lightning node data)", theme)
         a = self._stat_line("Alias", self.info['ln_alias'])
         v = self._stat_line("Version", self.info['ln_version'])
         p = self._stat_line("Peers", self.info['ln_num_peers'])
         lines = [a, v, p]
-        return self._wrap_box_alt(urwid.Pile(lines), "c-lightning")
+        return self._line_pile_box(lines, "c-lightning", theme)
 
-    def _block_id_widget(self):
+    def _block_id_widget(self, theme):
         if 'block_name' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no block data)")
+            return self._dummy_box("(no block data)", theme)
         h = self._stat_line("Height", str(self.info['block_height']))
         bn = self._stat_line("Name", self.info['block_name'])
         arrival = self._fmt_timestamp(self.info['block_arrival_time'])
@@ -225,12 +234,12 @@ class ScreenUI(object):
         miner = self._fmt_timestamp(self.info['block_timestamp'])
         t = self._stat_line("Miner Time", miner)
         lines = [h, bn, at, t]
-        return self._wrap_box_alt_2(urwid.Pile(lines), "Block ID")
+        return self._line_pile_box(lines, "Block ID", theme)
 
 
-    def _block_stat_widget(self):
+    def _block_stat_widget(self, theme):
         if 'block_n_txes' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no block data)")
+            return self._dummy_box("(no block data)", theme)
         tx = self._stat_line("In Block",
                              "{:,}".format(self.info['block_n_txes']),
                              "txs")
@@ -245,31 +254,31 @@ class ScreenUI(object):
         e = self._center_info_text("%s since last block" %
                                    self._fmt_seconds(elapsed))
         lines = [tx, s, w, e]
-        return self._wrap_box_alt_2(urwid.Pile(lines), "Block Stats")
+        return self._line_pile_box(lines, "Block Stats", theme)
 
-    def _phrase_widget(self):
+    def _phrase_widget(self, theme):
         if 'block_phrase' not in self.info:
-            return self._wrap_box_alt_4(urwid.Pile([]), "(no block data)")
+            return self._dummy_box("(no block data)", theme)
         p = self._center_info_text(self.info['block_phrase'])
         lines = [p]
-        return self._wrap_box_alt_4(urwid.Pile(lines), "")
+        return self._line_pile_box(lines, "", theme)
 
-    def _ram_widget(self):
+    def _ram_widget(self, theme):
         if 'mem_total' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no ram data)")
+            return self._dummy_box("(no ram data)", theme)
 
         r = self._stat_line("RAM Total", "{:,}".format(self.info['mem_total']),
-                             "bytes")
+                            "bytes")
         u = self._stat_line("RAM Used", "{:,}".format(self.info['mem_used']),
-                             "bytes")
+                            "bytes")
         up = self._progress_bar(self.info['mem_used_pct'])
 
         lines = [r, u, up]
-        return self._wrap_box(urwid.Pile(lines), "RAM")
+        return self._line_pile_box(lines, "RAM", theme)
 
-    def _net_widget(self):
+    def _net_widget(self, theme):
         if 'net_send' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no network data)")
+            return self._dummy_box("(no network data)", theme)
         s = self._stat_line("Send",
                             "{:,}".format(self.info['net_send']),
                             "byte/s")
@@ -283,11 +292,11 @@ class ScreenUI(object):
         else:
             lines = [s, r]
 
-        return self._wrap_box(urwid.Pile(lines), "Network")
+        return self._line_pile_box(lines, "Network", theme)
 
-    def _disk_widget(self):
+    def _disk_widget(self, theme):
         if 'disk_read' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no disk data)")
+            return self._dummy_box("(no disk data)", theme)
         rd = self._stat_line("Read",
                              "{:,}".format(self.info['disk_read']),
                              "byte/s")
@@ -295,33 +304,33 @@ class ScreenUI(object):
                              "{:,}".format(self.info['disk_write']),
                              "byte/s")
         lines = [rd, wt]
-        return self._wrap_box(urwid.Pile(lines), "Disk")
+        return self._line_pile_box(lines, "Disk", theme)
 
-    def _cpu_widget(self):
+    def _cpu_widget(self, theme):
         if 'cpu_pct' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no cpu data)")
+            return self._dummy_box("(no cpu data)", theme)
         lines = []
         for cpu in self.info['cpu_pct']:
             lines.append(self._progress_bar(cpu))
-        return self._wrap_box(urwid.Pile(lines),
-                              "%d CPUs" % len(self.info['cpu_pct']))
+        title = "%d CPUs" % len(self.info['cpu_pct'])
+        return self._line_pile_box(lines, title, theme)
 
-    def _song_playing_widget(self):
+    def _song_playing_widget(self, theme):
         if 'song_playing_title' not in self.info:
-            return self._wrap_box_alt_3(urwid.Pile([]), "(no song playing)")
+            return self._dummy_box("(no song playing)", theme)
         if not self.info['song_playing_title']:
-            return self._wrap_box_alt_3(urwid.Pile([]), "(no song playing)")
+            return self._dummy_box("(no song playing)", theme)
         st = self._stat_line("Title", self.info['song_playing_title'])
         sa = self._stat_line("Artist", self.info['song_playing_artist'])
         lines = [st, sa]
-        return self._wrap_box_alt_3(urwid.Pile(lines), "Now Playing")
+        return self._line_pile_box(lines, "Now Playing", theme)
 
-    def _song_queue_widget(self):
+    def _song_queue_widget(self, theme):
         if 'queued_songs' not in self.info:
-            return self._wrap_box_alt_3(urwid.Pile([]), "(no songs queued)")
+            return self._dummy_box("(no songs queued)", theme)
         n = len(self.info['queued_songs'])
         if n == 0:
-            return self._wrap_box_alt_3(urwid.Pile([]), "(no songs queued)")
+            return self._dummy_box("(no songs queued)", theme)
 
         showing = min(n, 5)
         not_showing = (n - 5) if (n > 5) else 0
@@ -337,27 +346,27 @@ class ScreenUI(object):
         if not_showing != 0:
             m = self._center_info_text("(%d more)" % not_showing)
             lines.append(m)
-        return self._wrap_box_alt_3(urwid.Pile(lines), "Song Queue")
+        return self._line_pile_box(lines, "Song Queue", theme)
 
     ###########################################################################
 
     def _build_widgets(self):
-        bd = self._bitcoind_widget()
-        ld = self._c_lightning_widget()
-        fee = self._fee_estimate_widget()
-        bi = self._block_id_widget()
-        bs = self._block_stat_widget()
+        bd = self._bitcoind_widget(ORANGE_THEME)
+        ld = self._c_lightning_widget(BLUE_THEME)
+        fee = self._fee_estimate_widget(ORANGE_THEME)
+        bi = self._block_id_widget(BLUE_THEME)
+        bs = self._block_stat_widget(ORANGE_THEME)
 
-        r = self._ram_widget()
-        n = self._net_widget()
-        d = self._disk_widget()
-        c = self._cpu_widget()
+        r = self._ram_widget(BLUE_THEME)
+        n = self._net_widget(ORANGE_THEME)
+        d = self._disk_widget(BLUE_THEME)
+        c = self._cpu_widget(ORANGE_THEME)
 
-        sp = self._song_playing_widget()
-        sq = self._song_queue_widget()
+        sp = self._song_playing_widget(BLUE_THEME)
+        sq = self._song_queue_widget(ORANGE_THEME)
 
-        ph = self._phrase_widget()
-        l = self._ledger_widget()
+        ph = self._phrase_widget(BLUE_THEME)
+        l = self._ledger_widget(ORANGE_THEME)
 
         col1 = self._list_box([bd, ld, fee, ph, sp, sq])
         col2 = self._list_box([r, n, d, c])
