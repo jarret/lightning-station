@@ -1,8 +1,9 @@
-import urwid
+import time
 from datetime import datetime, timezone
 import pytz
+import urwid
+import textwrap
 import json
-import time
 from logger import log
 
 LIGHT_ORANGE = "#fa0"
@@ -29,48 +30,49 @@ WHITE = "g100"
 LIGHT_GREY = "g82"
 DARK_GREY = "g19"
 
+GREY = DARK_GREY
+
+NEUTRAL_GREY = 'g46'
+
 PALETTE = [
-           ('background', '', '', '', 'g38', "g38"),
+           ('background', '', '', '', NEUTRAL_GREY, NEUTRAL_GREY),
 
            ('major_text', '', '', '', WHITE, BLACK),
 
-           ('title_text', '', '', '', 'g78', BLACK),
-           ('unit_text', '', '', '', 'g78', BLACK),
-           ('label_text', '', '', '', 'g78', BLACK),
 
            ('orange', '', '', '', BLACK, DARK_ORANGE),
-           ('progress_orange_n', '', '', '', 'g19', LIGHT_ORANGE),
-           ('progress_orange_c',  '', '', '', LIGHT_ORANGE, 'g19'),
+           ('progress_orange_n', '', '', '', GREY, LIGHT_ORANGE),
+           ('progress_orange_c',  '', '', '', LIGHT_ORANGE, GREY),
            ('orange_minor_text', '', '', '', LIGHT_ORANGE, BLACK),
 
            ('blue', '', '', '', WHITE, DARK_BLUE),
-           ('progress_blue_n', '', '', '', 'g19', LIGHT_BLUE),
-           ('progress_blue_c',  '', '', '', LIGHT_BLUE, 'g19'),
+           ('progress_blue_n', '', '', '', GREY, LIGHT_BLUE),
+           ('progress_blue_c',  '', '', '', LIGHT_BLUE, GREY),
            ('blue_minor_text', '', '', '', LIGHT_BLUE, BLACK),
 
            ('green', '', '', '', WHITE, DARK_GREEN),
-           ('progress_green_n', '', '', '', 'g19', LIGHT_GREEN),
-           ('progress_green_c',  '', '', '', LIGHT_GREEN, 'g19'),
+           ('progress_green_n', '', '', '', GREY, LIGHT_GREEN),
+           ('progress_green_c',  '', '', '', LIGHT_GREEN, GREY),
            ('green_minor_text', '', '', '', LIGHT_GREEN, BLACK),
 
            ('red', '', '', '', WHITE, DARK_RED),
-           ('progress_red_n', '', '', '', 'g19', LIGHT_RED),
-           ('progress_red_c',  '', '', '', LIGHT_RED, 'g19'),
+           ('progress_red_n', '', '', '', GREY, LIGHT_RED),
+           ('progress_red_c',  '', '', '', LIGHT_RED, GREY),
            ('red_minor_text', '', '', '', LIGHT_RED, BLACK),
 
            ('purple', '', '', '', WHITE, DARK_PURPLE),
-           ('progress_purple_n', '', '', '', 'g19', LIGHT_PURPLE),
-           ('progress_purple_c',  '', '', '', LIGHT_PURPLE, 'g19'),
+           ('progress_purple_n', '', '', '', GREY, LIGHT_PURPLE),
+           ('progress_purple_c',  '', '', '', LIGHT_PURPLE, GREY),
            ('purple_minor_text', '', '', '', LIGHT_PURPLE, BLACK),
 
            ('yellow', '', '', '', BLACK, DARK_YELLOW),
-           ('progress_yellow_n', '', '', '', 'g19', LIGHT_YELLOW),
-           ('progress_yellow_c',  '', '', '', LIGHT_YELLOW, 'g19'),
+           ('progress_yellow_n', '', '', '', GREY, LIGHT_YELLOW),
+           ('progress_yellow_c',  '', '', '', LIGHT_YELLOW, GREY),
            ('yellow_minor_text', '', '', '', LIGHT_YELLOW, BLACK),
 
            ('grey', '', '', '', WHITE, DARK_GREY),
-           ('progress_grey_n', '', '', '', 'g19', LIGHT_GREY),
-           ('progress_grey_c',  '', '', '', LIGHT_GREY, 'g19'),
+           ('progress_grey_n', '', '', '', GREY, LIGHT_GREY),
+           ('progress_grey_c',  '', '', '', LIGHT_GREY, GREY),
            ('grey_minor_text', '', '', '', LIGHT_GREY, BLACK),
           ]
 
@@ -81,9 +83,6 @@ ORANGE_THEME = {
     'progress_c': 'progress_orange_c',
     'major_text': 'major_text',
     'minor_text': 'orange_minor_text',
-    'title_text': 'title_text',
-    'label_text': 'label_text',
-    'unit_text':  'unit_text',
 }
 
 BLUE_THEME = {
@@ -92,9 +91,6 @@ BLUE_THEME = {
     'progress_c': 'progress_blue_c',
     'major_text': 'major_text',
     'minor_text': 'blue_minor_text',
-    'title_text': 'title_text',
-    'label_text': 'label_text',
-    'unit_text':  'unit_text',
 }
 
 GREEN_THEME = {
@@ -103,9 +99,6 @@ GREEN_THEME = {
     'progress_c': 'progress_green_c',
     'major_text': 'major_text',
     'minor_text': 'green_minor_text',
-    'title_text': 'title_text',
-    'label_text': 'label_text',
-    'unit_text':  'unit_text',
 }
 
 RED_THEME = {
@@ -114,9 +107,6 @@ RED_THEME = {
     'progress_c': 'progress_red_c',
     'major_text': 'major_text',
     'minor_text': 'red_minor_text',
-    'title_text': 'title_text',
-    'label_text': 'label_text',
-    'unit_text':  'unit_text',
 }
 
 PURPLE_THEME = {
@@ -125,9 +115,6 @@ PURPLE_THEME = {
     'progress_c': 'progress_purple_c',
     'major_text': 'major_text',
     'minor_text': 'purple_minor_text',
-    'title_text': 'title_text',
-    'label_text': 'label_text',
-    'unit_text':  'unit_text',
 }
 
 YELLOW_THEME = {
@@ -136,9 +123,6 @@ YELLOW_THEME = {
     'progress_c': 'progress_yellow_c',
     'major_text': 'major_text',
     'minor_text': 'yellow_minor_text',
-    'title_text': 'title_text',
-    'label_text': 'label_text',
-    'unit_text':  'unit_text',
 }
 
 GREY_THEME = {
@@ -147,10 +131,6 @@ GREY_THEME = {
     'progress_c': 'progress_grey_c',
     'major_text': 'major_text',
     'minor_text': 'grey_minor_text',
-
-    'title_text': 'title_text',
-    'label_text': 'label_text',
-    'unit_text':  'unit_text',
 }
 
 
@@ -170,16 +150,11 @@ class ScreenUI(object):
     ###########################################################################
 
     def _center_major_text(self, string, theme):
-        return urwid.Text((theme['major_text'], " %s " % string), align='center')
+        return urwid.Text((theme['major_text'], " %s " % string),
+                          align='center')
     def _center_minor_text(self, string, theme):
         return urwid.Text((theme['minor_text'], " %s " % string),
                            align='center')
-
-    def _center_major_text_2(self, string, theme):
-        return urwid.Text((theme['major_text'], "%s" % string), align='center')
-
-    def _center_title_text(self, string, theme):
-        return urwid.Text((theme['title_text'], string), align='center')
 
     def _progress_bar(self, pct, theme):
         return urwid.ProgressBar(theme['progress_n'], theme['progress_c'],
@@ -371,8 +346,8 @@ class ScreenUI(object):
     def _phrase_widget(self, theme):
         if 'block_phrase' not in self.info:
             return self._dummy_box("(no block data)", theme)
-        p = self._center_major_text(self.info['block_phrase'], theme)
-        lines = [p]
+        wrapped = textwrap.wrap(self.info['block_phrase'], 40)
+        lines = [self._center_major_text(l, theme) for l in wrapped]
         return self._line_pile_box(lines, "", theme)
 
     def _ram_widget(self, theme):
