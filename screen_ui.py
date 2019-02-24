@@ -1,5 +1,6 @@
 import urwid
-import datetime
+from datetime import datetime, timezone
+import pytz
 import json
 import time
 from logger import log
@@ -13,15 +14,15 @@ PANEL_ALT_4 = "#0a0"
 
 PALETTE = [
            #('info_text', 'black', 'light gray'),
-           ('info_text', '', '', '', '#fff,bold', 'g7'),
-           ('background', '', '', '', 'g7,bold', "g7"),
-           ('panel_box', '', '', '', 'g7,bold', PANEL),
-           ('panel_box_alt', '', '', '', 'g11,bold', PANEL_ALT),
-           ('panel_box_alt_2', '', '', '', 'g11,bold', PANEL_ALT_2),
-           ('panel_box_alt_3', '', '', '', 'g11,bold', PANEL_ALT_3),
-           ('panel_box_alt_4', '', '', '', 'g11,bold', PANEL_ALT_4),
-           ('title_text', 'white,underline', 'black', 'bold,underline'),
-           ('unit_text', '', '', '', '#fff', 'g7'),
+           ('info_text', '', '', '', '#fff', 'g7'),
+           ('background', '', '', '', 'g7', "g7"),
+           ('panel_box', '', '', '', 'g7', PANEL),
+           ('panel_box_alt', '', '', '', 'g11', PANEL_ALT),
+           ('panel_box_alt_2', '', '', '', 'g11', PANEL_ALT_2),
+           ('panel_box_alt_3', '', '', '', 'g11', PANEL_ALT_3),
+           ('panel_box_alt_4', '', '', '', 'g11', PANEL_ALT_4),
+           ('title_text', '', '', '', 'g78', 'g7'),
+           ('unit_text', '', '', '', 'g78', 'g7'),
            ('label_text', '', '', '', 'g78', 'g7'),
            ('pb_normal', '', '', '', 'g19', BACK),
            ('pb_complete',  '', '', '', BACK, 'g19'),
@@ -91,8 +92,8 @@ class ScreenUI(object):
     ###########################################################################
 
     def _fmt_timestamp(self, timestamp):
-        dt = datetime.datetime.utcfromtimestamp(timestamp)
-        return dt.strftime('%Y-%m-%d %H:%M:%S')
+        dt = datetime.fromtimestamp(timestamp, tz=pytz.timezone('US/Mountain'))
+        return dt.strftime('%b %d, %H:%M:%S')
 
     def _fmt_seconds(self, seconds):
         m = seconds // 60
@@ -173,7 +174,8 @@ class ScreenUI(object):
         e_str = self._center_info_text_2(" ".join(e_strs) + " ")
         lines = [b_str, c_str, e_str]
 
-        return self._wrap_box_alt_2(urwid.Pile(lines), "Fee Estimates (sat/byte)")
+        return self._wrap_box_alt_2(urwid.Pile(lines),
+                                    "Fee Estimates (sat/byte)")
 
     def _bitcoind_widget(self):
         if 'net_connections' not in self.info:
@@ -192,26 +194,22 @@ class ScreenUI(object):
         lines = [a, v, p]
         return self._wrap_box_alt(urwid.Pile(lines), "c-lightning")
 
-    def _daemon_widget(self):
-        b = self._bitcoind_widget()
-        l = self._c_lightning_widget()
-
-        lines = [b, l]
-        return self._wrap_box_alt(urwid.Pile(lines), "Daemons")
-
-
     def _block_id_widget(self):
+        if 'block_name' not in self.info:
+            return self._wrap_box(urwid.Pile([]), "(no block data)")
         h = self._stat_line("Height", str(self.info['block_height']))
         bn = self._stat_line("Name", self.info['block_name'])
         arrival = self._fmt_timestamp(self.info['block_arrival_time'])
-        at = self._stat_line("Arrive Time", arrival, "UTC")
+        at = self._stat_line("Arrive Time", arrival)
         miner = self._fmt_timestamp(self.info['block_timestamp'])
-        t = self._stat_line("Miner Time", miner, "UTC")
+        t = self._stat_line("Miner Time", miner)
         lines = [h, bn, at, t]
         return self._wrap_box_alt_2(urwid.Pile(lines), "Block ID")
 
 
     def _block_stat_widget(self):
+        if 'block_n_txes' not in self.info:
+            return self._wrap_box(urwid.Pile([]), "(no block data)")
         tx = self._stat_line("In Block",
                              "{:,}".format(self.info['block_n_txes']),
                              "txs")
@@ -228,14 +226,6 @@ class ScreenUI(object):
         lines = [tx, s, w, e]
         return self._wrap_box_alt_2(urwid.Pile(lines), "Block Stats")
 
-    def _block_widget(self):
-        if 'block_name' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no block data)")
-        i = self._block_id_widget()
-        s = self._block_stat_widget()
-        lines = [i, s]
-        return self._wrap_box_alt_2(urwid.Pile(lines), "")
-
     def _phrase_widget(self):
         if 'block_phrase' not in self.info:
             return self._wrap_box_alt_4(urwid.Pile([]), "(no block data)")
@@ -248,9 +238,6 @@ class ScreenUI(object):
             return self._wrap_box(urwid.Pile([]), "(no mempool data)")
         if 'mem_total' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no ram data)")
-        r = self._stat_line("RAM Total", "{:,}".format(self.info['mem_total']),
-                             "bytes")
-        ru = self._progress_bar(self.info['mem_used_pct'])
         t = self._stat_line("Mempool",
                             "{:,}".format(self.info['mempool_txs']),
                             "txs")
@@ -259,7 +246,13 @@ class ScreenUI(object):
                             "bytes")
         mu = self._progress_bar(self.info['mempool_percent'])
 
-        lines = [r, ru, t, b, mu]
+        r = self._stat_line("RAM Total", "{:,}".format(self.info['mem_total']),
+                             "bytes")
+        u = self._stat_line("RAM Used", "{:,}".format(self.info['mem_used']),
+                             "bytes")
+        up = self._progress_bar(self.info['mem_used_pct'])
+
+        lines = [t, b, mu, r, u, up]
         return self._wrap_box(urwid.Pile(lines), "RAM")
 
     def _net_widget(self):
@@ -340,9 +333,11 @@ class ScreenUI(object):
     ###########################################################################
 
     def _build_widgets(self):
-        dae = self._daemon_widget()
+        bd = self._bitcoind_widget()
+        ld = self._c_lightning_widget()
         fee = self._fee_estimate_widget()
-        blk = self._block_widget()
+        bi = self._block_id_widget()
+        bs = self._block_stat_widget()
 
         r = self._ram_widget()
         n = self._net_widget()
@@ -354,9 +349,9 @@ class ScreenUI(object):
 
         ph = self._phrase_widget()
 
-        col1 = self._list_box([dae, fee, ph])
+        col1 = self._list_box([bd, ld, fee, ph])
         col2 = self._list_box([r, n, d, c])
-        col3 = self._list_box([blk, sp, sq])
+        col3 = self._list_box([bi, bs, sp, sq])
         cols = urwid.Columns([col1, col2, col3])
 
         self.loop.widget = cols

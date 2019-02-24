@@ -24,6 +24,15 @@ PHRASES = [
 "Cypherpunks write code.",
 "A spectre is haunting the world, the spectre of crypto-anarchy.",
 "Your beard is weird.",
+"We are all Satoshi except for Craig Wright",
+"1 BTC Is Worth 1 BTC.",
+"\"Running bitcoin\" -@halfin, Jan 10, 2009",
+"Bitcoin Twitter is the best e-sports team.",
+"The longest chain is whichever one Pieter Wuille is on.",
+"Buying Bitcoin will make you smart in the future.",
+"r/buttcoin on suicide watch",
+"It's certainly possible I was bamboozled.",
+"The Proof-of-Work speaks for itself.",
 ]
 
 

@@ -41,13 +41,14 @@ class SystemResources(object):
         if len(ips) > 0:
             return ips[0]
         return "???"
-            
+
     ###########################################################################
 
     def _poll_system_resources_thread_func(blockchain_dir, blockchain_device):
         sr = {}
         vm = psutil.virtual_memory()
         sr['mem_total'] = vm.total
+        sr['mem_used'] = vm.total - vm.available
         #sr['mem_available'] = vm.available
         sr['mem_used_pct'] = ((1.0 - (float(vm.available) / float(vm.total))) *
                               100.0)
