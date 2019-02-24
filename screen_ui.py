@@ -143,8 +143,22 @@ class ScreenUI(object):
 
     ###########################################################################
 
+    #def _init_info(self):
+    #    return {'last_block': time.time()
+    #           }
+
     def _init_info(self):
-        return {'last_block': time.time()
+        return {'last_block': time.time(),
+                'song_playing_title': "Friday",
+                'song_playing_artist': "Rebecca Black",
+                'song_start_time': time.time(),
+                'song_length': 100.0,
+                'queued_songs': [
+                                 {'title': "Mo Money Mo Problems",
+                                  'artist': "Notorious B.I.G."},
+                                 {'title': "Hustlin'",
+                                  'artist': "Rick Ross"},
+                                ]
                }
 
     ###########################################################################
@@ -401,6 +415,11 @@ class ScreenUI(object):
         title = "%d CPUs" % len(self.info['cpu_pct'])
         return self._line_pile_box(lines, title, theme)
 
+    def _jukebox_widget(self, theme):
+
+        lines = []
+        return self._line_pile_box(lines, "Jukebox Playing", theme)
+
     def _song_playing_widget(self, theme):
         if 'song_playing_title' not in self.info:
             return self._dummy_box("(no song playing)", theme)
@@ -443,6 +462,7 @@ class ScreenUI(object):
         ph = self._phrase_widget(YELLOW_THEME)
         bd = self._bitcoind_widget(GREY_THEME)
         ld = self._c_lightning_widget(GREY_THEME)
+        #j = self._jukebox_widget(BLUE_THEME)
         sp = self._song_playing_widget(BLUE_THEME)
         sq = self._song_queue_widget(BLUE_THEME)
 

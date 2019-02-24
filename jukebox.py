@@ -121,6 +121,8 @@ class JukeboxQueue(object):
         self._finish_playing_song()
 
     def _play_song_defer(self, path):
+        self.song_start_time = time.time()
+        self.song_length = 100.0 # TOOD find the actual song length
         d = threads.deferToThread(JukeboxQueue._play_song_thread_func, path)
         d.addCallback(self._play_song_callback)
 
@@ -144,8 +146,12 @@ class JukeboxQueue(object):
     def _update_screen(self):
         spt = self.song_playing['title'] if self.song_playing else None
         spa = self.song_playing['artist'] if self.song_playing else None
+        sst = self.song_start_time if self.song_playing else None
+        sl = self.song_length if self.song_playing else None
         info = {'song_playing_title':  spt,
                 'song_playing_artist': spa,
+                'song_start_time':     sst,
+                'song_length':         sl,
                 'queued_songs':        []}
         for s in self.song_queue:
             info['queued_songs'].append({'title':  s['title'],
