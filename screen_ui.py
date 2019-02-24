@@ -13,14 +13,13 @@ PANEL_ALT_3 = "#f00"
 PANEL_ALT_4 = "#0a0"
 
 PALETTE = [
-           #('info_text', 'black', 'light gray'),
            ('info_text', '', '', '', '#fff', 'g7'),
            ('background', '', '', '', 'g7', "g7"),
-           ('panel_box', '', '', '', 'g7', PANEL),
-           ('panel_box_alt', '', '', '', 'g11', PANEL_ALT),
-           ('panel_box_alt_2', '', '', '', 'g11', PANEL_ALT_2),
-           ('panel_box_alt_3', '', '', '', 'g11', PANEL_ALT_3),
-           ('panel_box_alt_4', '', '', '', 'g11', PANEL_ALT_4),
+           ('panel_box', '', '', '', 'g0', PANEL),
+           ('panel_box_alt', '', '', '', 'g0', PANEL_ALT),
+           ('panel_box_alt_2', '', '', '', 'g0', PANEL_ALT_2),
+           ('panel_box_alt_3', '', '', '', 'g0', PANEL_ALT_3),
+           ('panel_box_alt_4', '', '', '', 'g0', PANEL_ALT_4),
            ('title_text', '', '', '', 'g78', 'g7'),
            ('unit_text', '', '', '', 'g78', 'g7'),
            ('label_text', '', '', '', 'g78', 'g7'),
@@ -177,6 +176,28 @@ class ScreenUI(object):
         return self._wrap_box_alt_2(urwid.Pile(lines),
                                     "Fee Estimates (sat/byte)")
 
+    def _ledger_widget(self):
+        if 'dir_size' not in self.info:
+            return self._wrap_box(urwid.Pile([]), "(no ledger data)")
+        if 'mempool_txs' not in self.info:
+            return self._wrap_box(urwid.Pile([]), "(no mempool data)")
+
+        t = self._stat_line("Mempool",
+                            "{:,}".format(self.info['mempool_txs']),
+                            "txs")
+        s = self._stat_line("Mempool Size",
+                            "{:,}".format(self.info['mempool_bytes']),
+                            "bytes")
+        m = self._stat_line("Max Mempool",
+                            "{:,}".format(self.info['mempool_max']),
+                            "bytes")
+        mu = self._progress_bar(self.info['mempool_percent'])
+        b = self._stat_line("Blockchain",
+                            "{:,}".format(self.info['dir_size']),
+                            "bytes")
+        lines = [t, s, m, mu, b]
+        return self._wrap_box_alt(urwid.Pile(lines), "Ledger")
+
     def _bitcoind_widget(self):
         if 'net_connections' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no bitcoind data)")
@@ -234,17 +255,8 @@ class ScreenUI(object):
         return self._wrap_box_alt_4(urwid.Pile(lines), "")
 
     def _ram_widget(self):
-        if 'mempool_txs' not in self.info:
-            return self._wrap_box(urwid.Pile([]), "(no mempool data)")
         if 'mem_total' not in self.info:
             return self._wrap_box(urwid.Pile([]), "(no ram data)")
-        t = self._stat_line("Mempool",
-                            "{:,}".format(self.info['mempool_txs']),
-                            "txs")
-        b = self._stat_line("Mempool Size",
-                            "{:,}".format(self.info['mempool_bytes']),
-                            "bytes")
-        mu = self._progress_bar(self.info['mempool_percent'])
 
         r = self._stat_line("RAM Total", "{:,}".format(self.info['mem_total']),
                              "bytes")
@@ -252,7 +264,7 @@ class ScreenUI(object):
                              "bytes")
         up = self._progress_bar(self.info['mem_used_pct'])
 
-        lines = [t, b, mu, r, u, up]
+        lines = [r, u, up]
         return self._wrap_box(urwid.Pile(lines), "RAM")
 
     def _net_widget(self):
@@ -282,10 +294,7 @@ class ScreenUI(object):
         wt = self._stat_line("Write",
                              "{:,}".format(self.info['disk_write']),
                              "byte/s")
-        b = self._stat_line("Blockchain",
-                            "{:,}".format(self.info['dir_size']),
-                            "bytes")
-        lines = [rd, wt, b]
+        lines = [rd, wt]
         return self._wrap_box(urwid.Pile(lines), "Disk")
 
     def _cpu_widget(self):
@@ -348,10 +357,11 @@ class ScreenUI(object):
         sq = self._song_queue_widget()
 
         ph = self._phrase_widget()
+        l = self._ledger_widget()
 
-        col1 = self._list_box([bd, ld, fee, ph])
+        col1 = self._list_box([bd, ld, fee, ph, sp, sq])
         col2 = self._list_box([r, n, d, c])
-        col3 = self._list_box([bi, bs, sp, sq])
+        col3 = self._list_box([bi, bs, l])
         cols = urwid.Columns([col1, col2, col3])
 
         self.loop.widget = cols

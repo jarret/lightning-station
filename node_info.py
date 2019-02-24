@@ -33,6 +33,7 @@ class NodeInfo(object):
                             FEE_RATE_BLOCKS}
         return {'mempool_txs':      mempool_info['size'],
                 'mempool_bytes':    mempool_info['usage'],
+                'mempool_max':      mempool_info['maxmempool'],
                 'mempool_percent':  mempool_pct,
                 'net_connections':  network_info['connections'],
                 'net_version':      network_info['subversion'],
