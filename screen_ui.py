@@ -152,7 +152,7 @@ class ScreenUI(object):
                 'song_playing_title': "Friday",
                 'song_playing_artist': "Rebecca Black",
                 'song_start_time': time.time(),
-                'song_length': 100.0,
+                'song_length': 200.0,
                 'queued_songs': [
                                  {'title': "Mo Money Mo Problems",
                                   'artist': "Notorious B.I.G."},
@@ -415,58 +415,77 @@ class ScreenUI(object):
         title = "%d CPUs" % len(self.info['cpu_pct'])
         return self._line_pile_box(lines, title, theme)
 
+    ############################################################################
+
+    def _playing_line(self, title, artist, theme):
+        tl = (theme['minor_text'], " Title: ")
+        t = (theme['major_text'], title )
+        al = (theme['minor_text'], " Artist: ")
+        a = (theme['major_text'], artist + " ")
+        return urwid.Text([tl, t, al, a], align='center')
+
+    def _queued_line(self, song_idx, title, artist, theme):
+        tl = (theme['minor_text'], " %d) " % song_idx)
+        t = (theme['major_text'], title)
+        al = (theme['minor_text'], " by ")
+        a = (theme['major_text'], artist + " ")
+        return urwid.Text([tl, t, al, a], align='center')
+
+    def _playing_progress_line(self, start_time, length, theme):
+        elapsed = time.time() - start_time
+        ll = (theme['minor_text'], " Played: ")
+        l = (theme['major_text'], "%d/%d" % (int(elapsed), int(length)))
+        s = (theme['minor_text'], " seconds")
+        return urwid.Text([ll, l, s], align='center')
+
+    def _playing_progress_bar(self, start_time, length, theme):
+        elapsed = time.time() - start_time
+        if elapsed > length:
+            percent = 100.0
+        else:
+            percent = (elapsed / length) * 100.0
+        return self._progress_bar(percent, theme)
+
     def _jukebox_widget(self, theme):
-
-        lines = []
-        return self._line_pile_box(lines, "Jukebox Playing", theme)
-
-    def _song_playing_widget(self, theme):
         if 'song_playing_title' not in self.info:
             return self._dummy_box("(no song playing)", theme)
         if not self.info['song_playing_title']:
             return self._dummy_box("(no song playing)", theme)
-        st = self._stat_line("Title", self.info['song_playing_title'], None,
-                             theme)
-        sa = self._stat_line("Artist", self.info['song_playing_artist'], None,
-                             theme)
-        lines = [st, sa]
-        return self._line_pile_box(lines, "Now Playing", theme)
+        p = self._playing_line(self.info['song_playing_title'],
+                               self.info['song_playing_artist'], theme)
+        pr = self._playing_progress_line(self.info['song_start_time'],
+                                         self.info['song_length'], theme)
+        pb = self._playing_progress_bar(self.info['song_start_time'],
+                                        self.info['song_length'], theme)
 
-    def _song_queue_widget(self, theme):
-        if 'queued_songs' not in self.info:
-            return self._dummy_box("(no songs queued)", theme)
+        lines = [p, pr, pb]
+
         n = len(self.info['queued_songs'])
         if n == 0:
-            return self._dummy_box("(no songs queued)", theme)
+            return self._line_pile_box(lines, "Jukebox", theme)
 
         showing = min(n, 5)
         not_showing = (n - 5) if (n > 5) else 0
-
-        lines = []
+        s_lines = [self._center_minor_text("------------", theme)]
         songs = self.info['queued_songs']
         for i in range(showing):
             song = songs[i]
-            t = self._center_major_text("%d) Title: %s" % (i + 1, song['title']),
-                                       theme)
-            lines.append(t)
-            a = self._center_major_text("   Artist: %s" % song['artist'], theme)
-            lines.append(a)
+            a = self._queued_line(i + 1, song['title'], song['artist'], theme)
+            s_lines.append(a)
         if not_showing != 0:
             m = self._center_major_text("(%d more)" % not_showing, theme)
-            lines.append(m)
-        return self._line_pile_box(lines, "Song Queue", theme)
+            s_lines.append(m)
+        return self._line_pile_box(lines + s_lines, "Jukebox", theme)
 
-    ###########################################################################
+    ############################################################################
 
     def _build_widgets(self):
         ph = self._phrase_widget(YELLOW_THEME)
         bd = self._bitcoind_widget(GREY_THEME)
         ld = self._c_lightning_widget(GREY_THEME)
-        #j = self._jukebox_widget(BLUE_THEME)
-        sp = self._song_playing_widget(BLUE_THEME)
-        sq = self._song_queue_widget(BLUE_THEME)
+        j = self._jukebox_widget(BLUE_THEME)
 
-        col1 = self._list_box([ph, bd, ld, sp, sq])
+        col1 = self._list_box([ph, bd, ld, j])
 
         bi = self._block_id_widget(ORANGE_THEME)
         bs = self._block_stat_widget(ORANGE_THEME)
