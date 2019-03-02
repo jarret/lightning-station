@@ -4,6 +4,7 @@ import time
 import json
 import uuid
 from base64 import b64encode
+from mutagen.mp3 import MP3
 
 from twisted.internet import task, threads
 
@@ -79,6 +80,9 @@ class MusicSelect(object):
         assert os.path.exists(full), "could not locate? %s" % full
         song['path'] = full
         song['bolt11'] = MOCK_BOLT11
+        audio = MP3(song['path'])
+        song['length'] = audio.info.length
+        print(song)
         return song
 
     def get_next_song(self):
@@ -122,7 +126,6 @@ class JukeboxQueue(object):
 
     def _play_song_defer(self, path):
         self.song_start_time = time.time()
-        self.song_length = 100.0 # TOOD find the actual song length
         d = threads.deferToThread(JukeboxQueue._play_song_thread_func, path)
         d.addCallback(self._play_song_callback)
 
@@ -147,7 +150,7 @@ class JukeboxQueue(object):
         spt = self.song_playing['title'] if self.song_playing else None
         spa = self.song_playing['artist'] if self.song_playing else None
         sst = self.song_start_time if self.song_playing else None
-        sl = self.song_length if self.song_playing else None
+        sl = self.song_playing['length'] if self.song_playing else None
         info = {'song_playing_title':  spt,
                 'song_playing_artist': spa,
                 'song_start_time':     sst,
@@ -158,10 +161,11 @@ class JukeboxQueue(object):
                                          'artist': s['artist']})
         self.screen_ui.update_info(info)
 
-    def add_song(self, title, artist, path):
+    def add_song(self, title, artist, path, length):
         log("queued: %s %s %s" % (title, artist, path))
         self.song_queue.append({'title':  title,
                                 'artist': artist,
+                                'length': length,
                                 'path':   path})
         self._try_next()
         self._update_screen()
@@ -268,7 +272,8 @@ class Jukebox(object):
                 continue
             self.jukebox_queue.add_song(songs[l]['title'],
                                         songs[l]['artist'],
-                                        songs[l]['path'])
+                                        songs[l]['path'],
+                                        songs[l]['length'])
             self.purchased_cb(songs[l]['price'])
 
         for old_label, new_label, bolt11, expires in renews:

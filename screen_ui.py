@@ -149,16 +149,16 @@ class ScreenUI(object):
 
     def _init_info(self):
         return {'last_block': time.time(),
-                'song_playing_title': "Friday",
-                'song_playing_artist': "Rebecca Black",
-                'song_start_time': time.time(),
-                'song_length': 200.0,
-                'queued_songs': [
-                                 {'title': "Mo Money Mo Problems",
-                                  'artist': "Notorious B.I.G."},
-                                 {'title': "Hustlin'",
-                                  'artist': "Rick Ross"},
-                                ]
+                #'song_playing_title': "Friday",
+                #'song_playing_artist': "Rebecca Black",
+                #'song_start_time': time.time(),
+                #'song_length': 200.0,
+                #'queued_songs': [
+                #                 {'title': "Mo Money Mo Problems",
+                #                  'artist': "Notorious B.I.G."},
+                #                 {'title': "Hustlin'",
+                #                  'artist': "Rick Ross"},
+                #               ]
                }
 
     ###########################################################################
@@ -360,7 +360,7 @@ class ScreenUI(object):
     def _phrase_widget(self, theme):
         if 'block_phrase' not in self.info:
             return self._dummy_box("(no block data)", theme)
-        wrapped = textwrap.wrap(self.info['block_phrase'], 40)
+        wrapped = textwrap.wrap(self.info['block_phrase'], 28)
         lines = [self._center_major_text(l, theme) for l in wrapped]
         return self._line_pile_box(lines, "", theme)
 
