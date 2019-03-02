@@ -70,10 +70,20 @@ PALETTE = [
            ('progress_yellow_c',  '', '', '', LIGHT_YELLOW, GREY),
            ('yellow_minor_text', '', '', '', LIGHT_YELLOW, BLACK),
 
-           ('grey', '', '', '', WHITE, DARK_GREY),
+           ('grey', '', '', '', WHITE, BLACK),
            ('progress_grey_n', '', '', '', GREY, LIGHT_GREY),
            ('progress_grey_c',  '', '', '', LIGHT_GREY, GREY),
            ('grey_minor_text', '', '', '', LIGHT_GREY, BLACK),
+
+           ('bolt', '', '', '', DARK_YELLOW, BLACK),
+           ('progress_bolt_n', '', '', '', BLACK, LIGHT_GREY),
+           ('progress_bolt_c',  '', '', '', LIGHT_GREY, BLACK),
+           ('bolt_minor_text', '', '', '', DARK_YELLOW, BLACK),
+
+           ('coke', '', '', '', LIGHT_RED, BLACK),
+           ('progress_coke_n', '', '', '', DARK_RED, DARK_GREY),
+           ('progress_coke_c',  '', '', '', DARK_GREY, DARK_RED),
+           ('coke_minor_text', '', '', '', LIGHT_RED, BLACK),
           ]
 
 
@@ -131,6 +141,22 @@ GREY_THEME = {
     'progress_c': 'progress_grey_c',
     'major_text': 'major_text',
     'minor_text': 'grey_minor_text',
+}
+
+BOLT_THEME = {
+    'panel':      'bolt',
+    'progress_n': 'progress_bolt_n',
+    'progress_c': 'progress_bolt_c',
+    'major_text': 'major_text',
+    'minor_text': 'bolt_minor_text',
+}
+
+COKE_THEME = {
+    'panel':      'coke',
+    'progress_n': 'progress_coke_n',
+    'progress_c': 'progress_coke_c',
+    'major_text': 'major_text',
+    'minor_text': 'coke_minor_text',
 }
 
 
@@ -325,6 +351,30 @@ class ScreenUI(object):
         lines = [a, v, p]
         return self._line_pile_box(lines, "c-lightning", theme)
 
+    def _ln_channel_widget(self, theme):
+        if 'ln_channels_pending' not in self.info:
+            return self._dummy_box("(no lightning channel data)", theme)
+
+        t_str = self._title_row(["%7s" % 'channel', "%7s" % 'pending',
+                                 "%7s" % 'active', "%7s" % 'inactiv'], theme)
+
+        p = self.info['ln_channels_pending']
+        a = self.info['ln_channels_active']
+        i = self.info['ln_channels_inactive']
+        sep = self._center_minor_text("------------", theme)
+        theirs = 1234677999 / 1000.0
+        ours = 1234677999 / 1000.0
+        onchain = int(round(1234677999 / 1000.0))
+        c = sum([p, a, i])
+        v_str = self._row(['%7d' % c, "%7d" % p, "%7d" % a, "%7d" % i], theme)
+
+        o = self._stat_line("Node Owns", "%0.3f" % ours, 'satoshis', theme)
+        t = self._stat_line("Peers Own", "%0.3f" % theirs, 'satoshis', theme)
+        c = self._stat_line("On Chain", "%d" % onchain, 'satoshis', theme)
+
+        lines = [t_str, v_str, sep, o, t, c]
+        return self._line_pile_box(lines, "Lightning Peers", theme)
+
     def _block_id_widget(self, theme):
         if 'block_name' not in self.info:
             return self._dummy_box("(no block data)", theme)
@@ -480,24 +530,25 @@ class ScreenUI(object):
     ############################################################################
 
     def _build_widgets(self):
-        ph = self._phrase_widget(YELLOW_THEME)
-        bd = self._bitcoind_widget(GREY_THEME)
-        ld = self._c_lightning_widget(GREY_THEME)
-        j = self._jukebox_widget(BLUE_THEME)
+        d = self._disk_widget(YELLOW_THEME)
+        n = self._net_widget(YELLOW_THEME)
+        c = self._cpu_widget(BLUE_THEME)
+        r = self._ram_widget(BLUE_THEME)
+        ph = self._phrase_widget(RED_THEME)
+        col1 = self._list_box([d, n, c, r, ph])
 
-        col1 = self._list_box([ph, bd, ld, j])
-
-        bi = self._block_id_widget(ORANGE_THEME)
-        bs = self._block_stat_widget(ORANGE_THEME)
+        bd = self._bitcoind_widget(ORANGE_THEME)
+        bi = self._block_id_widget(GREEN_THEME)
+        bs = self._block_stat_widget(GREEN_THEME)
         l = self._ledger_widget(PURPLE_THEME)
         fee = self._fee_estimate_widget(PURPLE_THEME)
-        col2 = self._list_box([bi, bs, l, fee])
+        col2 = self._list_box([bd, bi, bs, l, fee])
 
-        c = self._cpu_widget(RED_THEME)
-        r = self._ram_widget(RED_THEME)
-        d = self._disk_widget(GREEN_THEME)
-        n = self._net_widget(GREEN_THEME)
-        col3 = self._list_box([c, r, d, n])
+        ld = self._c_lightning_widget(GREY_THEME)
+        ch = self._ln_channel_widget(BOLT_THEME)
+        j = self._jukebox_widget(COKE_THEME)
+
+        col3 = self._list_box([ld, ch, j])
 
         cols = urwid.Columns([col1, col2, col3])
 

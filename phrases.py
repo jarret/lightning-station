@@ -33,6 +33,10 @@ PHRASES = [
 "r/buttcoin on suicide watch",
 "It's certainly possible I was bamboozled.",
 "The Proof-of-Work speaks for itself.",
+"Definitely not a cult.",
+"Soooooo easy. Global adoption imminent.",
+"Babies are dying.",
+"I want my free lunch.",
 ]
 
 
