@@ -67,7 +67,7 @@ class LnNodeInfo(object):
 
     def _getinfofunds(lightning_rpc):
         ld = LightningDaemon(lightning_rpc)
-        return ld.getinfo(), ld.listfunds()
+        return ld.getinfo(), ld.listfunds(), ld.listnodes()
 
 
     def _sum_funds(funds):
@@ -80,11 +80,16 @@ class LnNodeInfo(object):
         theirs = total - ours
         return theirs, ours, chain
 
+    def _sum_nodes(nodes):
+        return len(nodes['nodes'])
+
     def _poll_ln_node_info_thread_func(lightning_rpc):
-        info, funds = LnNodeInfo._getinfofunds(lightning_rpc)
+        info, funds, nodes = LnNodeInfo._getinfofunds(lightning_rpc)
         theirs, ours, chain = LnNodeInfo._sum_funds(funds)
+        n_nodes = LnNodeInfo._sum_nodes(nodes)
         return {'ln_version':           info['version'],
-                'ln_num_peers':         info['num_peers'],
+                'ln_inet_peers':        info['num_peers'],
+                'ln_node_peers':        n_nodes,
                 'ln_alias':             info['alias'],
                 'ln_channels_pending':  info['num_pending_channels'],
                 'ln_channels_active':   info['num_active_channels'],

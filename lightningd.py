@@ -34,3 +34,6 @@ class LightningDaemon(object):
 
     def listfunds(self):
         return self.rpc.listfunds()
+
+    def listnodes(self):
+        return self.rpc.listnodes()

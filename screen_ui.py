@@ -80,6 +80,11 @@ PALETTE = [
            ('progress_bolt_c',  '', '', '', LIGHT_GREY, BLACK),
            ('bolt_minor_text', '', '', '', DARK_YELLOW, BLACK),
 
+           ('spark', '', '', '', LIGHT_BLUE, BLACK),
+           ('progress_spark_n', '', '', '', BLACK, LIGHT_GREY),
+           ('progress_spark_c',  '', '', '', LIGHT_GREY, BLACK),
+           ('spark_minor_text', '', '', '', LIGHT_BLUE, BLACK),
+
            ('coke', '', '', '', LIGHT_RED, BLACK),
            ('progress_coke_n', '', '', '', LIGHT_RED, DARK_GREY),
            ('progress_coke_c',  '', '', '', DARK_GREY, LIGHT_RED),
@@ -154,6 +159,14 @@ BOLT_THEME = {
     'progress_c': 'progress_bolt_c',
     'major_text': 'major_text',
     'minor_text': 'bolt_minor_text',
+}
+
+SPARK_THEME = {
+    'panel':      'spark',
+    'progress_n': 'progress_spark_n',
+    'progress_c': 'progress_spark_c',
+    'major_text': 'major_text',
+    'minor_text': 'spark_minor_text',
 }
 
 COKE_THEME = {
@@ -360,9 +373,18 @@ class ScreenUI(object):
             return self._dummy_box("(no lightning node data)", theme)
         a = self._stat_line("Alias", self.info['ln_alias'], None, theme)
         v = self._stat_line("Version", self.info['ln_version'], None, theme)
-        p = self._stat_line("Net Peers", self.info['ln_num_peers'], None, theme)
-        lines = [a, v, p]
+        lines = [a, v]
         return self._line_pile_box(lines, "c-lightning", theme)
+
+    def _lightning_net_widget(self, theme):
+        if 'ln_channels_pending' not in self.info:
+            return self._dummy_box("(no lightning channel data)", theme)
+        ip = self._stat_line("Internet", self.info['ln_inet_peers'], 'peers',
+                             theme)
+        ln = self._stat_line("Lightning", self.info['ln_node_peers'], 'peers',
+                             theme)
+        lines = [ip, ln]
+        return self._line_pile_box(lines, "Lightning Network", theme)
 
     def _ln_channel_widget(self, theme):
         if 'ln_channels_pending' not in self.info:
@@ -376,7 +398,7 @@ class ScreenUI(object):
         c = sum([p, a, i])
         v_str = self._row(['%8d' % c, "%7d" % p, "%7d" % a, "%8d" % i], theme)
         lines = [t_str, v_str]
-        return self._line_pile_box(lines, "Channels", theme)
+        return self._line_pile_box(lines, "Payment Channels", theme)
 
     def _ln_funds_widget(self, theme):
         if 'ln_channel_theirs' not in self.info:
@@ -560,11 +582,12 @@ class ScreenUI(object):
         col2 = self._list_box([bd, l, fee, bi, bs])
 
         ld = self._c_lightning_widget(GREY_THEME)
-        ch = self._ln_channel_widget(BOLT_THEME)
+        ln = self._lightning_net_widget(BOLT_THEME)
+        ch = self._ln_channel_widget(SPARK_THEME)
         fu = self._ln_funds_widget(SPEARMINT_THEME)
         j = self._jukebox_widget(COKE_THEME)
 
-        col3 = self._list_box([ld, ch, fu, j])
+        col3 = self._list_box([ld, ln, ch, fu, j])
 
         cols = urwid.Columns([col1, col2, col3])
 
