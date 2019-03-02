@@ -433,10 +433,10 @@ class ScreenUI(object):
 
     def _playing_progress_line(self, start_time, length, theme):
         elapsed = time.time() - start_time
-        ll = (theme['minor_text'], " Played: ")
-        l = (theme['major_text'], "%d/%d" % (int(elapsed), int(length)))
-        s = (theme['minor_text'], " seconds")
-        return urwid.Text([ll, l, s], align='center')
+        p = (theme['major_text'], " %s " % (self._fmt_seconds(elapsed)))
+        s = (theme['minor_text'], "of")
+        d = (theme['major_text'], " %s " % (self._fmt_seconds(length)))
+        return urwid.Text([p, s, d], align='center')
 
     def _playing_progress_bar(self, start_time, length, theme):
         elapsed = time.time() - start_time
@@ -464,8 +464,8 @@ class ScreenUI(object):
         if n == 0:
             return self._line_pile_box(lines, "Jukebox", theme)
 
-        showing = min(n, 5)
-        not_showing = (n - 5) if (n > 5) else 0
+        showing = min(n, 3)
+        not_showing = (n - 3) if (n > 3) else 0
         s_lines = [self._center_minor_text("------------", theme)]
         songs = self.info['queued_songs']
         for i in range(showing):

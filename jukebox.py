@@ -82,7 +82,6 @@ class MusicSelect(object):
         song['bolt11'] = MOCK_BOLT11
         audio = MP3(song['path'])
         song['length'] = audio.info.length
-        print(song)
         return song
 
     def get_next_song(self):
