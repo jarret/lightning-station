@@ -81,9 +81,14 @@ PALETTE = [
            ('bolt_minor_text', '', '', '', DARK_YELLOW, BLACK),
 
            ('coke', '', '', '', LIGHT_RED, BLACK),
-           ('progress_coke_n', '', '', '', DARK_RED, DARK_GREY),
-           ('progress_coke_c',  '', '', '', DARK_GREY, DARK_RED),
+           ('progress_coke_n', '', '', '', LIGHT_RED, DARK_GREY),
+           ('progress_coke_c',  '', '', '', DARK_GREY, LIGHT_RED),
            ('coke_minor_text', '', '', '', LIGHT_RED, BLACK),
+
+           ('spearmint', '', '', '', LIGHT_GREEN, BLACK),
+           ('progress_spearmint_n', '', '', '', LIGHT_GREEN, DARK_GREY),
+           ('progress_spearmint_c',  '', '', '', DARK_GREY, LIGHT_GREEN),
+           ('spearmint_minor_text', '', '', '', LIGHT_GREEN, BLACK),
           ]
 
 
@@ -157,6 +162,14 @@ COKE_THEME = {
     'progress_c': 'progress_coke_c',
     'major_text': 'major_text',
     'minor_text': 'coke_minor_text',
+}
+
+SPEARMINT_THEME = {
+    'panel':      'spearmint',
+    'progress_n': 'progress_spearmint_n',
+    'progress_c': 'progress_spearmint_c',
+    'major_text': 'major_text',
+    'minor_text': 'spearmint_minor_text',
 }
 
 
@@ -347,7 +360,8 @@ class ScreenUI(object):
             return self._dummy_box("(no lightning node data)", theme)
         a = self._stat_line("Alias", self.info['ln_alias'], None, theme)
         v = self._stat_line("Version", self.info['ln_version'], None, theme)
-        lines = [a, v]
+        p = self._stat_line("Net Peers", self.info['ln_num_peers'], None, theme)
+        lines = [a, v, p]
         return self._line_pile_box(lines, "c-lightning", theme)
 
     def _ln_channel_widget(self, theme):
@@ -361,17 +375,20 @@ class ScreenUI(object):
         i = self.info['ln_channels_inactive']
         c = sum([p, a, i])
         v_str = self._row(['%8d' % c, "%7d" % p, "%7d" % a, "%8d" % i], theme)
-        sep = self._center_minor_text("------------", theme)
+        lines = [t_str, v_str]
+        return self._line_pile_box(lines, "Channels", theme)
+
+    def _ln_funds_widget(self, theme):
+        if 'ln_channel_theirs' not in self.info:
+            return self._dummy_box("(no lightning channel data)", theme)
         theirs = float(self.info['ln_channel_theirs']) / 1000.0
         ours = float(self.info['ln_channel_ours']) / 1000.0
         onchain = self.info['ln_channel_chain'] / 1000
-
         o = self._stat_line("Node Owns", "%0.3f" % ours, 'satoshis', theme)
         t = self._stat_line("Peers Own", "%0.3f" % theirs, 'satoshis', theme)
         c = self._stat_line("On Chain", "%d" % onchain, 'satoshis', theme)
-
-        lines = [t_str, v_str, sep, o, t, c]
-        return self._line_pile_box(lines, "Lightning Peers", theme)
+        lines = [o, t, c]
+        return self._line_pile_box(lines, "Funds", theme)
 
     def _block_id_widget(self, theme):
         if 'block_name' not in self.info:
@@ -544,9 +561,10 @@ class ScreenUI(object):
 
         ld = self._c_lightning_widget(GREY_THEME)
         ch = self._ln_channel_widget(BOLT_THEME)
+        fu = self._ln_funds_widget(SPEARMINT_THEME)
         j = self._jukebox_widget(COKE_THEME)
 
-        col3 = self._list_box([ld, ch, j])
+        col3 = self._list_box([ld, ch, fu, j])
 
         cols = urwid.Columns([col1, col2, col3])
 
