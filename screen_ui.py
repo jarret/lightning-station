@@ -403,11 +403,11 @@ class ScreenUI(object):
     def _ln_funds_widget(self, theme):
         if 'ln_channel_theirs' not in self.info:
             return self._dummy_box("(no lightning channel data)", theme)
-        theirs = float(self.info['ln_channel_theirs']) / 1000.0
-        ours = float(self.info['ln_channel_ours']) / 1000.0
+        theirs = self.info['ln_channel_theirs'] / 1000
+        ours = self.info['ln_channel_ours'] / 1000
         onchain = self.info['ln_channel_chain'] / 1000
-        o = self._stat_line("Node Owns", "%0.3f" % ours, 'satoshis', theme)
-        t = self._stat_line("Peers Own", "%0.3f" % theirs, 'satoshis', theme)
+        o = self._stat_line("Node Owns", "%d" % ours, 'satoshis', theme)
+        t = self._stat_line("Peers Own", "%d" % theirs, 'satoshis', theme)
         c = self._stat_line("On Chain", "%d" % onchain, 'satoshis', theme)
         lines = [o, t, c]
         return self._line_pile_box(lines, "Funds", theme)
