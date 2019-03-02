@@ -347,8 +347,7 @@ class ScreenUI(object):
             return self._dummy_box("(no lightning node data)", theme)
         a = self._stat_line("Alias", self.info['ln_alias'], None, theme)
         v = self._stat_line("Version", self.info['ln_version'], None, theme)
-        p = self._stat_line("Peers", self.info['ln_num_peers'], None, theme)
-        lines = [a, v, p]
+        lines = [a, v]
         return self._line_pile_box(lines, "c-lightning", theme)
 
     def _ln_channel_widget(self, theme):
@@ -363,9 +362,9 @@ class ScreenUI(object):
         c = sum([p, a, i])
         v_str = self._row(['%8d' % c, "%7d" % p, "%7d" % a, "%8d" % i], theme)
         sep = self._center_minor_text("------------", theme)
-        theirs = self.info['ln_channel_theirs'] / 1000.0
-        ours = self.info['ln_channel_ours'] / 1000.0
-        onchain = int(round(self.info['ln_channel_chain'] / 1000.0))
+        theirs = float(self.info['ln_channel_theirs']) / 1000.0
+        ours = float(self.info['ln_channel_ours']) / 1000.0
+        onchain = self.info['ln_channel_chain'] / 1000
 
         o = self._stat_line("Node Owns", "%0.3f" % ours, 'satoshis', theme)
         t = self._stat_line("Peers Own", "%0.3f" % theirs, 'satoshis', theme)
