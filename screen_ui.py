@@ -529,19 +529,19 @@ class ScreenUI(object):
     ############################################################################
 
     def _build_widgets(self):
-        d = self._disk_widget(YELLOW_THEME)
-        n = self._net_widget(YELLOW_THEME)
+        ph = self._phrase_widget(RED_THEME)
         c = self._cpu_widget(BLUE_THEME)
         r = self._ram_widget(BLUE_THEME)
-        ph = self._phrase_widget(RED_THEME)
-        col1 = self._list_box([d, n, c, r, ph])
+        d = self._disk_widget(YELLOW_THEME)
+        n = self._net_widget(YELLOW_THEME)
+        col1 = self._list_box([ph, c, r, d, n])
 
         bd = self._bitcoind_widget(ORANGE_THEME)
-        bi = self._block_id_widget(GREEN_THEME)
-        bs = self._block_stat_widget(GREEN_THEME)
         l = self._ledger_widget(PURPLE_THEME)
         fee = self._fee_estimate_widget(PURPLE_THEME)
-        col2 = self._list_box([bd, bi, bs, l, fee])
+        bi = self._block_id_widget(GREEN_THEME)
+        bs = self._block_stat_widget(GREEN_THEME)
+        col2 = self._list_box([bd, l, fee, bi, bs])
 
         ld = self._c_lightning_widget(GREY_THEME)
         ch = self._ln_channel_widget(BOLT_THEME)
