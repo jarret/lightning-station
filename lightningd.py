@@ -31,3 +31,6 @@ class LightningDaemon(object):
 
     def getinfo(self):
         return self.rpc.getinfo()
+
+    def listfunds(self):
+        return self.rpc.listfunds()

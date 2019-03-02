@@ -355,18 +355,17 @@ class ScreenUI(object):
         if 'ln_channels_pending' not in self.info:
             return self._dummy_box("(no lightning channel data)", theme)
 
-        t_str = self._title_row(["%7s" % 'channel', "%7s" % 'pending',
-                                 "%7s" % 'active', "%7s" % 'inactiv'], theme)
-
+        t_str = self._title_row(["%8s" % 'channels', "%7s" % 'pending',
+                                 "%7s" % 'active', "%8s" % 'inactive'], theme)
         p = self.info['ln_channels_pending']
         a = self.info['ln_channels_active']
         i = self.info['ln_channels_inactive']
-        sep = self._center_minor_text("------------", theme)
-        theirs = 1234677999 / 1000.0
-        ours = 1234677999 / 1000.0
-        onchain = int(round(1234677999 / 1000.0))
         c = sum([p, a, i])
-        v_str = self._row(['%7d' % c, "%7d" % p, "%7d" % a, "%7d" % i], theme)
+        v_str = self._row(['%8d' % c, "%7d" % p, "%7d" % a, "%8d" % i], theme)
+        sep = self._center_minor_text("------------", theme)
+        theirs = self.info['ln_channel_theirs'] / 1000.0
+        ours = self.info['ln_channel_ours'] / 1000.0
+        onchain = int(round(self.info['ln_channel_chain'] / 1000.0))
 
         o = self._stat_line("Node Owns", "%0.3f" % ours, 'satoshis', theme)
         t = self._stat_line("Peers Own", "%0.3f" % theirs, 'satoshis', theme)

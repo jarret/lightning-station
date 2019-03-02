@@ -65,15 +65,33 @@ class LnNodeInfo(object):
 
     ###########################################################################
 
-    def _getinfo(lightning_rpc):
+    def _getinfofunds(lightning_rpc):
         ld = LightningDaemon(lightning_rpc)
-        return ld.getinfo()
+        return ld.getinfo(), ld.listfunds()
+
+
+    def _sum_funds(funds):
+        def msat2int(msat_str):
+            assert msat_str.endswith("msat")
+            return int(msat_str[:-4])
+        chain = sum(msat2int(o['amount_msat']) for o in funds['outputs'])
+        total = sum(msat2int(c['amount_msat']) for c in funds['channels'])
+        ours = sum(msat2int(c['our_amount_msat']) for c in funds['channels'])
+        theirs = total - ours
+        return theirs, ours, chain
 
     def _poll_ln_node_info_thread_func(lightning_rpc):
-        info = LnNodeInfo._getinfo(lightning_rpc)
-        return {'ln_version':   info['version'],
-                'ln_num_peers': info['num_peers'],
-                'ln_alias':     info['alias'],
+        info, funds = LnNodeInfo._getinfofunds(lightning_rpc)
+        theirs, ours, chain = LnNodeInfo._sum_funds(funds)
+        return {'ln_version':           info['version'],
+                'ln_num_peers':         info['num_peers'],
+                'ln_alias':             info['alias'],
+                'ln_channels_pending':  info['num_pending_channels'],
+                'ln_channels_active':   info['num_active_channels'],
+                'ln_channels_inactive': info['num_inactive_channels'],
+                'ln_channel_ours':      ours,
+                'ln_channel_theirs':    theirs,
+                'ln_channel_chain':     chain,
                }
 
     def _poll_ln_node_info_callback(self, result):
