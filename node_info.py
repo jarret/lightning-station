@@ -85,7 +85,7 @@ class NodeInfo(object):
 
 ###########################################################################
 
-NODES_INTERVAL = 5.0
+NODES_INTERVAL = 30.0
 FUNDS_INTERVAL = 1.0
 INFO_INTERVAL = 1.0
 
@@ -105,11 +105,10 @@ class LnNodeInfo(object):
         return len(nodes['nodes'])
 
     def _poll_ln_nodes_thread_func(lightning_rpc):
-        return {'ln_node_peers': 10}
-        #nodes = LnNodeInfo._getnodes(lightning_rpc)
-        #n_nodes = LnNodeInfo._sum_nodes(nodes)
-        #return {'ln_node_peers': n_nodes,
-        #       }
+        #return {'ln_node_peers': 10}
+        nodes = LnNodeInfo._getnodes(lightning_rpc)
+        n_nodes = LnNodeInfo._sum_nodes(nodes)
+        return {'ln_node_peers': n_nodes}
 
     def _poll_ln_nodes_callback(self, result):
         self.screen_ui.update_info(result)
