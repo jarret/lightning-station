@@ -1,10 +1,12 @@
 import os
+import time
 import psutil
 
 from twisted.internet import threads
+from logger import log
 
 
-INTERVAL = 2.0
+INTERVAL = 1.5
 
 class SystemResources(object):
     def __init__(self, reactor, screen_ui, blockchain_dir, blockchain_device):
@@ -12,6 +14,12 @@ class SystemResources(object):
         self.reactor = reactor
         self.blockchain_dir = blockchain_dir
         self.blockchain_device = blockchain_device
+
+        self.d_read, self.d_write = (
+            SystemResources.get_disk_counters(blockchain_device))
+        self.d_time = time.time()
+        self.n_send, self.n_recv = SystemResources.get_net_counters()
+        self.n_time = time.time()
 
     ###########################################################################
 
@@ -44,44 +52,130 @@ class SystemResources(object):
 
     ###########################################################################
 
-    def _poll_system_resources_thread_func(blockchain_dir, blockchain_device):
-        sr = {}
-        vm = psutil.virtual_memory()
-        sr['mem_total'] = vm.total
-        sr['mem_used'] = vm.total - vm.available
-        #sr['mem_available'] = vm.available
-        sr['mem_used_pct'] = ((1.0 - (float(vm.available) / float(vm.total))) *
-                              100.0)
-        start_disk = psutil.disk_io_counters(perdisk=True)[blockchain_device]
-        start_net = psutil.net_io_counters()
-        sr['cpu_pct'] = psutil.cpu_percent(interval=INTERVAL, percpu=True)
-        sr['cpu_pct'].sort()
-        sr['cpu_pct'].reverse()
-        end_disk = psutil.disk_io_counters(perdisk=True)[blockchain_device]
-        end_net = psutil.net_io_counters()
-        read = int((end_disk.read_bytes - start_disk.read_bytes) / INTERVAL)
-        write = int((end_disk.write_bytes - start_disk.write_bytes) / INTERVAL)
-        sr['disk_read'] = read
-        sr['disk_write'] = write
-        send = int((end_net.bytes_sent - start_net.bytes_sent) / INTERVAL)
-        recv = int((end_net.bytes_recv - start_net.bytes_recv) / INTERVAL)
-        sr['net_send'] = send
-        sr['net_recv'] = recv
-        sr['dir_size'] = SystemResources.sum_dir_size(blockchain_dir)
-        sr['ip_address'] = SystemResources.get_ip_addr()
-        return sr
+    def _poll_dir_size_thread_func(blockchain_dir):
+        return {'dir_size': SystemResources.sum_dir_size(blockchain_dir)}
 
-    def _poll_system_resources_callback(self, result):
+    def _poll_dir_size_callback(self, result):
         self.screen_ui.update_info(result)
-        self.reactor.callLater(0.0, self._poll_system_resources_defer)
+        self.reactor.callLater(30, self._poll_dir_size_defer)
 
-    def _poll_system_resources_defer(self):
-        d = threads.deferToThread(
-            SystemResources._poll_system_resources_thread_func,
-            self.blockchain_dir, self.blockchain_device)
-        d.addCallback(self._poll_system_resources_callback)
+    def _poll_dir_size_defer(self):
+        d = threads.deferToThread(SystemResources._poll_dir_size_thread_func,
+                                  self.blockchain_dir)
+        d.addCallback(self._poll_dir_size_callback)
+
+    ###########################################################################
+
+    def _poll_ip_thread_func():
+        return {'ip_address': SystemResources.get_ip_addr()}
+
+    def _poll_ip_callback(self, result):
+        self.screen_ui.update_info(result)
+        self.reactor.callLater(30, self._poll_ip_defer)
+
+    def _poll_ip_defer(self):
+        d = threads.deferToThread(SystemResources._poll_ip_thread_func)
+        d.addCallback(self._poll_ip_callback)
+
+    ###########################################################################
+
+    def _poll_cpu_thread_func():
+        cpu = psutil.cpu_percent(percpu=True)
+        cpu.sort()
+        cpu.reverse()
+        return {'cpu_pct': cpu}
+
+    def _poll_cpu_callback(self, result):
+        self.screen_ui.update_info(result)
+        self.reactor.callLater(0.8, self._poll_cpu_defer)
+
+    def _poll_cpu_defer(self):
+        d = threads.deferToThread(SystemResources._poll_cpu_thread_func)
+        d.addCallback(self._poll_cpu_callback)
+
+    ###########################################################################
+
+    def _poll_memory_thread_func():
+        vm = psutil.virtual_memory()
+        total = vm.total
+        used = vm.total - vm.available
+        used_pct = ((1.0 - (float(vm.available) / float(vm.total))) * 100.0)
+        return {'mem_total':    total,
+                'mem_used':     used,
+                'mem_used_pct': used_pct}
+
+    def _poll_memory_callback(self, result):
+        self.screen_ui.update_info(result)
+        self.reactor.callLater(0.8, self._poll_memory_defer)
+
+    def _poll_memory_defer(self):
+        d = threads.deferToThread(SystemResources._poll_memory_thread_func)
+        d.addCallback(self._poll_memory_callback)
+
+    ###########################################################################
+
+    def get_net_counters():
+        n = psutil.net_io_counters()
+        return n.bytes_sent, n.bytes_recv
+
+    def _poll_net_thread_func():
+        s, r = SystemResources.get_net_counters()
+        t = time.time()
+        return {'send': s,
+                'recv': r,
+                'time': t}
+
+    def _poll_net_callback(self, result):
+        elapsed = result['time'] - self.n_time
+        send_rate = int((result['send'] - self.n_send) / elapsed)
+        recv_rate = int((result['recv'] - self.n_recv) / elapsed)
+        self.n_send = result['send']
+        self.n_recv = result['recv']
+        self.n_time = result['time']
+        self.screen_ui.update_info({'net_send': send_rate,
+                                    'net_recv': recv_rate})
+        self.reactor.callLater(0.8, self._poll_net_defer)
+
+    def _poll_net_defer(self):
+        d = threads.deferToThread(SystemResources._poll_net_thread_func)
+        d.addCallback(self._poll_net_callback)
+
+    ###########################################################################
+
+    def get_disk_counters(blockchain_device):
+        c = psutil.disk_io_counters(perdisk=True)[blockchain_device]
+        return c.read_bytes, c.write_bytes
+
+    def _poll_disk_thread_func(blockchain_device):
+        r, w = SystemResources.get_disk_counters(blockchain_device)
+        t = time.time()
+        return {'read':  r,
+                'write': w,
+                'time':  t}
+
+    def _poll_disk_callback(self, result):
+        elapsed = result['time'] - self.d_time
+        read_rate = int((result['read'] - self.d_read) / elapsed)
+        write_rate = int((result['write'] - self.d_write) / elapsed)
+        self.d_read = result['read']
+        self.d_write = result['write']
+        self.d_time = result['time']
+        self.screen_ui.update_info({'disk_read':  read_rate,
+                                    'disk_write': write_rate})
+        self.reactor.callLater(0.8, self._poll_disk_defer)
+
+    def _poll_disk_defer(self):
+        d = threads.deferToThread(SystemResources._poll_disk_thread_func,
+                                  self.blockchain_device)
+        d.addCallback(self._poll_disk_callback)
 
     ###########################################################################
 
     def run(self):
-        self.reactor.callLater(0.5, self._poll_system_resources_defer)
+        #self.reactor.callLater(0.5, self._poll_system_resources_defer)
+        self.reactor.callLater(2.0, self._poll_memory_defer)
+        self.reactor.callLater(2.0, self._poll_cpu_defer)
+        self.reactor.callLater(2.0, self._poll_disk_defer)
+        self.reactor.callLater(2.0, self._poll_net_defer)
+        self.reactor.callLater(2.0, self._poll_dir_size_defer)
+        self.reactor.callLater(2.0, self._poll_ip_defer)

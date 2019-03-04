@@ -6,10 +6,12 @@ import textwrap
 import json
 from logger import log
 
+from twisted.internet.task import LoopingCall
+
 LIGHT_ORANGE = "#fa0"
 DARK_ORANGE = "#f60"
 
-LIGHT_BLUE = "#0ff"
+LIGHT_BLUE = "#0df"
 DARK_BLUE = "#00d"
 
 LIGHT_GREEN = "#ad8"
@@ -189,9 +191,11 @@ SPEARMINT_THEME = {
 class ScreenUI(object):
     def __init__(self, reactor, console):
         self.loop = self._setup_loop_background(reactor)
+        self.reactor = reactor
         self.info = self._init_info()
         self._build_widgets()
         self.console = console
+        self.draw_loop = None
 
     ###########################################################################
 
@@ -377,8 +381,10 @@ class ScreenUI(object):
         return self._line_pile_box(lines, "c-lightning", theme)
 
     def _lightning_net_widget(self, theme):
-        if 'ln_channels_pending' not in self.info:
-            return self._dummy_box("(no lightning channel data)", theme)
+        if 'ln_node_peers' not in self.info:
+            return self._dummy_box("(no lightning net data)", theme)
+        if 'ln_inet_peers' not in self.info:
+            return self._dummy_box("(no lightning net data)", theme)
         ip = self._stat_line("Internet", self.info['ln_inet_peers'], 'peers',
                              theme)
         ln = self._stat_line("Lightning", self.info['ln_node_peers'], 'peers',
@@ -595,15 +601,19 @@ class ScreenUI(object):
 
     ###########################################################################
 
-    def update_info(self, new_info):
-        self.info.update(new_info)
-        #log(json.dumps(new_info, indent=1, sort_keys=True))
+    def draw_call(self):
+        log("Drawing %0.2f" % time.time())
         if self.console:
-            #log(json.dumps(new_info, indent=1, sort_keys=True))
             return
-
         self._build_widgets()
         self.loop.draw_screen()
+
+    def update_info(self, new_info):
+        self.info.update(new_info)
+        log(json.dumps(new_info, indent=1, sort_keys=True))
+        if not self.draw_loop:
+            self.draw_loop = LoopingCall(self.draw_call)
+            self.draw_loop.start(1.0, now=True)
 
     ###########################################################################
 
