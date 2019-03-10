@@ -1,3 +1,6 @@
+# Copyright (c) 2019 Jarret Dyrbye
+# Distributed under the MIT software license, see the accompanying
+# file LICENSE or http://www.opensource.org/licenses/mit-license.php
 from statistics import mean, median
 from bitcoinrpc import Bitcoind
 

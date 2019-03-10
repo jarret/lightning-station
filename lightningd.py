@@ -1,6 +1,7 @@
+# Copyright (c) 2019 Jarret Dyrbye
+# Distributed under the MIT software license, see the accompanying
+# file LICENSE or http://www.opensource.org/licenses/mit-license.php
 import json
-
-
 from lightning import LightningRpc
 
 from logger import log

@@ -1,3 +1,7 @@
+# Copyright (c) 2019 Jarret Dyrbye
+# Distributed under the MIT software license, see the accompanying
+# file LICENSE or http://www.opensource.org/licenses/mit-license.php
+
 import time
 from twisted.internet import threads
 from txzmq import ZmqEndpoint, ZmqFactory, ZmqSubConnection
