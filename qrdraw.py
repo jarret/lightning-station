@@ -14,6 +14,8 @@ class QRDraw(object):
         # A large border the QR code might be a good idea depending on what is
         # surrounding the physical display. A 4 blocks is generally advisable
         # for QR codes to ensure it can be easily picked up by a scanner.
+
+        content = content.upper() if content.isalnum() else content
         border = 2
 
         qr = qrcode.QRCode(version=1,
