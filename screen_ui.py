@@ -199,6 +199,7 @@ class ScreenUI(object):
         self._build_widgets()
         self.console = console
         self.draw_loop = None
+        self.refresh_loop = None
 
     ###########################################################################
 
@@ -261,14 +262,17 @@ class ScreenUI(object):
         loop.screen.set_terminal_properties(colors=256)
         return loop
 
+    def refresh_screen(self):
+        self._build_blank_widgets()
+        self.loop.draw_screen()
+        self._build_widgets()
+        self.loop.draw_screen()
+
     def exit_on_q(self, key):
         if key in ('q', 'Q'):
             raise urwid.ExitMainLoop()
         if key in ('r', 'R'):
-            self._build_blank_widgets()
-            self.loop.draw_screen()
-            self._build_widgets()
-            self.loop.draw_screen()
+            self.refresh_screen()
 
     ###########################################################################
 
@@ -626,6 +630,10 @@ class ScreenUI(object):
         if not self.draw_loop:
             self.draw_loop = LoopingCall(self.draw_call)
             self.draw_loop.start(1.0, now=True)
+            self.refresh_loop = LoopingCall(self.refresh_screen)
+            refresh_period = 60.0 * 30 # thirty minutes
+            self.refresh_loop.start(refresh_period, now=False)
+            self.reactor.call_later(30.0, self.refresh_screen)
 
     ###########################################################################
 
