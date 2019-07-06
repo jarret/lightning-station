@@ -52,9 +52,9 @@ class WebEinkUI(object):
 
     def gen_screen_bytes(bolt11, price, line1, line2):
         simg = Image.new("L", (WIDTH, HEIGHT), color=0xff)
-        qimg = EinkUI.qrcode_image(bolt11)
+        qimg = WebEinkUI.qrcode_image(bolt11)
         simg.paste(qimg, (0, 35))
-        EinkUI.add_text(simg, price, line1, line2)
+        WebEinkUI.add_text(simg, price, line1, line2)
         l = simg.convert("L")
         data = bytes(l.getdata())
         return data
@@ -62,10 +62,10 @@ class WebEinkUI(object):
     ###########################################################################
 
     def _generate_thread_func(bolt11, price, line1, line2):
-        return EinkUI.gen_screen_bytes(bolt11, price, line1, line2)
+        return WebEinkUI.gen_screen_bytes(bolt11, price, line1, line2)
 
     def generate_bytes_defer(self, song, callback):
-        d = threads.deferToThread(EinkUI._generate_thread_func,
+        d = threads.deferToThread(WebEinkUI._generate_thread_func,
                                   song['bolt11'], song['price'], song['title'],
                                   song['artist'])
         d.addCallback(callback)
