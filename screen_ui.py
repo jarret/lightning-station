@@ -264,6 +264,11 @@ class ScreenUI(object):
     def exit_on_q(self, key):
         if key in ('q', 'Q'):
             raise urwid.ExitMainLoop()
+        if key in ('r', 'R'):
+            self._build_blank_widgets()
+            self.loop.draw_screen()
+            self._build_widgets()
+            self.loop.draw_screen()
 
     ###########################################################################
 
@@ -600,6 +605,10 @@ class ScreenUI(object):
 
         cols = urwid.Columns([col1, col2, col3])
 
+        self.loop.widget = cols
+
+    def _build_blank_widgets(self):
+        cols = urwid.Columns([])
         self.loop.widget = cols
 
     ###########################################################################
