@@ -8,6 +8,7 @@ from logger import log
 
 
 INVOICE_EXPIRY = 60 * 60 * 24 # 24 hours
+#INVOICE_EXPIRY = 60 * 2
 
 class LightningDaemon(object):
     def __init__(self, daemon_rpc):

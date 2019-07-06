@@ -263,6 +263,8 @@ class ScreenUI(object):
         return loop
 
     def refresh_screen(self):
+        if self.console:
+            return
         self._build_blank_widgets()
         self.loop.draw_screen()
         self._build_widgets()
@@ -626,14 +628,14 @@ class ScreenUI(object):
 
     def update_info(self, new_info):
         self.info.update(new_info)
-        log(json.dumps(new_info, indent=1, sort_keys=True))
+        #log(json.dumps(new_info, indent=1, sort_keys=True))
         if not self.draw_loop:
             self.draw_loop = LoopingCall(self.draw_call)
             self.draw_loop.start(1.0, now=True)
             self.refresh_loop = LoopingCall(self.refresh_screen)
             refresh_period = 60.0 * 30 # thirty minutes
             self.refresh_loop.start(refresh_period, now=False)
-            self.reactor.call_later(30.0, self.refresh_screen)
+            self.reactor.callLater(30.0, self.refresh_screen)
 
     ###########################################################################
 

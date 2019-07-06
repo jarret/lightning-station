@@ -15,9 +15,7 @@ from lightningd import LightningDaemon
 from audio_player import AudioPlayer
 from logger import log
 
-EXPIRY = 60 * 60 * 24 # 24 hours
-
-SECONDS_TO_EXPIRY = 30
+SECONDS_TO_EXPIRY = 20
 
 CHECK_PERIOD = 1.0
 
@@ -253,6 +251,7 @@ class Jukebox(object):
                    Jukebox._paid_check(labels_to_check, i))
         expired = set(i['label'] for i in invs['invoices'] if
                       Jukebox._expired_check(labels_to_check, i))
+        statuses = {i['label']: i['status'] for i in invs['invoices']}
         log("paid: %s" % paid)
         log("expired: %s" % expired)
         renews = list(Jukebox._iter_renews(daemon, thread_data, paid, expired))
@@ -262,7 +261,8 @@ class Jukebox(object):
             daemon.delete(l)
         for l in iter(expired):
             log("expire deleting: %s" % l)
-            daemon.delete(l, state="unpaid")
+            status = statuses[l]
+            daemon.delete(l, state=status)
         return (paid, renews)
 
     def _check_paid_callback(self, result):
@@ -283,7 +283,7 @@ class Jukebox(object):
             s['label'] = new_label
             s['bolt11'] = bolt11
             s['expires'] = expires
-            self.renewed_cb(old_label, songs[l])
+            self.renewed_cb(old_label, s)
 
         # TODO - renew websocket/UI clients
         self.reactor.callLater(CHECK_PERIOD, self._periodic_check)
