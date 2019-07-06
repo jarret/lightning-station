@@ -270,6 +270,9 @@ class ScreenUI(object):
         self._build_widgets()
         self.loop.draw_screen()
 
+    def delay_refresh_screen(self):
+        self.reactor.callLater(1.0, self.refresh_screen)
+
     def exit_on_q(self, key):
         if key in ('q', 'Q'):
             raise urwid.ExitMainLoop()

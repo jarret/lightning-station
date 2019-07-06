@@ -8,8 +8,8 @@ import json
 from logger import log
 
 RPC_PORT = 8332
-RPC_USER = 'bitcoinrpc'
-RPC_PASSWORD = 'rpc'
+RPC_USER = 'rpc'
+RPC_PASSWORD = 'bitcoinrpc'
 
 URL = 'http://' + RPC_USER + ':' + RPC_PASSWORD + '@localhost:' + str(RPC_PORT)
 

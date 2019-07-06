@@ -136,6 +136,7 @@ class PhysicalUI(object):
         self.drawing = False
         self.leds_off()
         log("finished_drawing")
+        self.screen_ui.delay_refresh_screen()
 
     def finish_drawing_purchased(self, result):
         self.finish_drawing(result)
