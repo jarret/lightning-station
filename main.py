@@ -63,7 +63,8 @@ if __name__ == '__main__':
     parser.add_argument('blockchain_dir', type=str,
                         help="dir holding the blockchain for monitoring size")
     args = parser.parse_args()
-    setup_logging(args.log_file, 'jukebox', console_silent=(not args.console))
+    setup_logging(args.log_file, 'jukebox', min_level=logging.INFO,
+                  console_silent=(not args.console))
 
     assert os.path.exists(args.audio_dir), "audio dir doesn't exist?"
     assert os.path.isdir(args.audio_dir), "audio dir not a dir?"
