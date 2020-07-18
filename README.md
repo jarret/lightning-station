@@ -1,24 +1,10 @@
-<<<<<<< HEAD
-Overview
-=======
 Lightning Network Hardware Jukebox
->>>>>>> 0f59092... prep repo for lightning hack submission
 -----
 
 ![station](img/station.png)
 
 ![panel](img/panel.png)
 
-<<<<<<< HEAD
-This is the application code for the Lightning Network Jukebox system. It also has a console that displays real-time stats about the system, `bitcoind` and `c-lightning`.
-
-You can see a demo and explanation of this here: [![Lightning Network Jukebox at the Bitcoin Rodeo](https://img.youtube.com/vi/v=N4-rrps_d14/0.jpg)](https://www.youtube.com/watch?v=N4-rrps_d14)
-
-Note
------
-
-This software is early, has bugs and is a weekend tinker project.
-=======
 Overview
 -----
 
@@ -104,7 +90,6 @@ Other Notes
 Depending on the LCD display, there may need to be special parameters specified in the Raspberry Pi's boot configuration take advantage of its native resolution.
 
 Also, the `~/.fbtermrc` config file can be customized to specify font and font size settings for `fbterm`.
->>>>>>> 0f59092... prep repo for lightning hack submission
 
 Parts
 -----
@@ -163,7 +148,6 @@ Parts
     * Drill Bits
 
 
-<<<<<<< HEAD
 Running this software without the hardware
 -----
 
@@ -228,16 +212,8 @@ Also, the `~/.fbtermrc` config file can be customized to specify font and font s
 License
 ----
 
-This code is licensed under the MIT License as defined in LICENSE. Have Fun!
-
-The e-ink display stuff under `waveshare/` is also MIT. The main repo, test programs and documentation is in [this repository](https://github.com/jarret/raspi-uart-waveshare).
-=======
-License
-----
-
 This source code is licensed under the MIT License as defined in LICENSE.
 
 The e-ink display stuff under `waveshare/` is also MIT. The main repo, test programs and documentation is in [this repository](https://github.com/jarret/raspi-uart-waveshare).
 
 The images and text in description of this project is made available to the public under the [Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/)
->>>>>>> 0f59092... prep repo for lightning hack submission
