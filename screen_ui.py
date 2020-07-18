@@ -7,7 +7,7 @@ import pytz
 import urwid
 import textwrap
 import json
-from logger import log
+import logging
 
 from twisted.internet.task import LoopingCall
 
@@ -623,7 +623,6 @@ class ScreenUI(object):
     ###########################################################################
 
     def draw_call(self):
-        log("Drawing %0.2f" % time.time())
         if self.console:
             return
         self._build_widgets()
@@ -631,7 +630,6 @@ class ScreenUI(object):
 
     def update_info(self, new_info):
         self.info.update(new_info)
-        #log(json.dumps(new_info, indent=1, sort_keys=True))
         if not self.draw_loop:
             self.draw_loop = LoopingCall(self.draw_call)
             self.draw_loop.start(1.0, now=True)

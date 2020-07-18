@@ -11,7 +11,6 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 
-from logger import log
 
 WIDTH = 300
 HEIGHT = 400

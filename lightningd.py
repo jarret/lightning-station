@@ -2,9 +2,9 @@
 # Distributed under the MIT software license, see the accompanying
 # file LICENSE or http://www.opensource.org/licenses/mit-license.php
 import json
+import logging
 from lightning import LightningRpc
 
-from logger import log
 
 
 INVOICE_EXPIRY = 60 * 60 * 24 # 24 hours
@@ -18,17 +18,18 @@ class LightningDaemon(object):
     def invoice_c_lightning(self, msatoshi, label, description):
         result = self.rpc.invoice(msatoshi, label, description,
                                   expiry=INVOICE_EXPIRY)
-        log(json.dumps(result, indent=1, sort_keys=True))
+        logging.info("invoicing daemon. got: %s" %
+                     json.dumps(result, indent=1, sort_keys=True))
         return result
 
     def get_c_lightning_invoices(self):
         result = self.rpc.listinvoices()
-        #log(json.dumps(result, indent=1, sort_keys=True))
+        #logging.info(json.dumps(result, indent=1, sort_keys=True))
         return result
 
     def delete(self, label, state="paid"):
         result = self.rpc.delinvoice(label, state)
-#        log(json.dumps(result, indent=1, sort_keys=True))
+#        logging.info(json.dumps(result, indent=1, sort_keys=True))
         return result
 
     def getinfo(self):

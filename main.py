@@ -13,7 +13,7 @@ from twisted.internet import reactor, task
 
 from screen_ui import ScreenUI
 from bitcoinrpc import Bitcoind
-from logger import log, setup_log
+from logger import setup_logging
 from block_listener import NewBlockQueue
 from system_resources import SystemResources
 from audio_player import AudioPlayer
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     parser.add_argument('blockchain_dir', type=str,
                         help="dir holding the blockchain for monitoring size")
     args = parser.parse_args()
-    setup_log(args.console, args.log_file)
+    setup_logging(args.log_file, 'jukebox', console_silent=(not args.console))
 
     assert os.path.exists(args.audio_dir), "audio dir doesn't exist?"
     assert os.path.isdir(args.audio_dir), "audio dir not a dir?"
@@ -72,7 +72,6 @@ if __name__ == '__main__':
                                                               "exist?")
     assert os.path.exists(args.blockchain_dir), "blockchain dir doesn't exist?"
     assert os.path.isdir(args.blockchain_dir), "blockchain dir not a dir?"
-    log("hello")
 
     r = reactor
     # setup urwid screen output
@@ -119,4 +118,4 @@ if __name__ == '__main__':
     except Exception:
         sui.stop()
         tb = traceback.format_exc()
-        log(tb)
+        logging.error(tb)

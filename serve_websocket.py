@@ -2,11 +2,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file LICENSE or http://www.opensource.org/licenses/mit-license.php
 import os
+import logging
 
 from autobahn.twisted.websocket import WebSocketServerProtocol
 from autobahn.twisted.websocket import WebSocketServerFactory
 
-from logger import log
 from audio_player import AudioPlayer
 
 
@@ -23,28 +23,30 @@ class LsWsServerProtocol(WebSocketServerProtocol):
     ###########################################################################
 
     def onConnect(self, request):
-        log("Client connecting: {0}".format(request.peer))
+        logging.info("Client connecting: {0}".format(request.peer))
 
     def onOpen(self):
-        log("WebSocket connection open.")
+        logging.info("WebSocket connection open.")
         next_song = self.jukebox.browse_next_song()
         self.web_eink_ui.generate_bytes_defer(next_song,
                                               self.screen_generated_cb)
 
     def onMessage(self, payload, isBinary):
         if isBinary:
-            log("Binary message received: {0} bytes".format(len(payload)))
-            log("Binary message received: %s" % payload.hex())
+            logging.info("Binary message received: {0} bytes".format(
+                len(payload)))
+            logging.info("Binary message received: %s" % payload.hex())
         else:
-            log("Text message received: {0}".format(payload.decode('utf8')))
+            logging.info("Text message received: {0}".format(
+                payload.decode('utf8')))
 
         self.tally += 1
         self.screen_ui.update_info({"ws_tally": self.tally})
-        log("payload: %s" % payload)
+        logging.info("payload: %s" % payload)
         self.audio_player.play_sound_effect('button')
 
         next_song = self.jukebox.browse_next_song()
-        log(next_song)
+        logging.info(next_song)
         self.web_eink_ui.generate_bytes_defer(next_song,
                                               self.screen_generated_cb)
 
@@ -52,7 +54,7 @@ class LsWsServerProtocol(WebSocketServerProtocol):
         self.sendMessage(display_bytes, True)
 
     def onClose(self, wasClean, code, reason):
-        log("WebSocket connection closed: {0}".format(reason))
+        logging.info("WebSocket connection closed: {0}".format(reason))
 
 ###############################################################################
 

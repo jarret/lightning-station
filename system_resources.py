@@ -6,7 +6,6 @@ import time
 import psutil
 
 from twisted.internet import threads
-from logger import log
 
 
 INTERVAL = 1.5

@@ -4,7 +4,7 @@
 import os
 import shutil
 import subprocess
-from logger import log
+import logging
 from twisted.internet import threads
 
 
@@ -32,7 +32,7 @@ class AudioPlayer(object):
             if self._cmd_exists(cmd[0]):
                 self.cmd = cmd
                 break
-        log(self.cmd)
+        logging.info(self.cmd)
 
     def _cmd_exists(self, cmd):
         return shutil.which(cmd) is not None

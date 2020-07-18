@@ -6,6 +6,7 @@ import random
 import time
 import json
 import uuid
+import logging
 from base64 import b64encode
 from mutagen.mp3 import MP3
 
@@ -13,7 +14,6 @@ from twisted.internet import task, threads
 
 from lightningd import LightningDaemon
 from audio_player import AudioPlayer
-from logger import log
 
 SECONDS_TO_EXPIRY = 20
 
@@ -162,7 +162,7 @@ class JukeboxQueue(object):
         self.screen_ui.update_info(info)
 
     def add_song(self, title, artist, path, length):
-        log("queued: %s %s %s" % (title, artist, path))
+        #logging.info("queued: %s %s %s" % (title, artist, path))
         self.song_queue.append({'title':  title,
                                 'artist': artist,
                                 'length': length,
@@ -195,6 +195,7 @@ class Jukebox(object):
         msatoshis = int(price * 1000)
         description = "Jukebox play: %s - %s" % (title, artist)
         result = daemon.invoice_c_lightning(msatoshis, label, description)
+        logging.info("jukebox invoice: %s" % str(result))
         return result['bolt11'], result['expires_at'], label
 
     ###########################################################################
@@ -218,7 +219,7 @@ class Jukebox(object):
     ###########################################################################
 
     def _expired_check(labels_to_check, invoice):
-        #log("invoice: %s" % invoice)
+        #logging.info("invoice: %s" % invoice)
         if not invoice['label'] in labels_to_check:
             return False
         if invoice['status'] == 'paid':
@@ -227,10 +228,12 @@ class Jukebox(object):
             return True
         # treat uppaid but near expired as expired
         current_time = int(time.time())
-        return (current_time + SECONDS_TO_EXPIRY) > invoice['expires_at']
+        near = (current_time + SECONDS_TO_EXPIRY) > invoice['expires_at']
+
+        return near
 
     def _paid_check(labels_to_check, invoice):
-        #log("invoice: %s" % invoice)
+        #logging.info("invoice: %s" % invoice)
         if not invoice['label'] in labels_to_check:
             return False
         return invoice['status'] == 'paid'
@@ -252,21 +255,27 @@ class Jukebox(object):
         expired = set(i['label'] for i in invs['invoices'] if
                       Jukebox._expired_check(labels_to_check, i))
         statuses = {i['label']: i['status'] for i in invs['invoices']}
-        log("paid: %s" % paid)
-        log("expired: %s" % expired)
+        if len(paid) > 0:
+            logging.info("paid invoices: %s" % paid)
+        #logging.info("paid: %s" % paid)
+        #logging.info("expired: %s" % expired)
+        if len(expired) > 0:
+            logging.info("expired invoices: %s" % paid)
         renews = list(Jukebox._iter_renews(daemon, thread_data, paid, expired))
-        log("renews %s" % renews)
+        #logging.info("renews %s" % renews)
+        if len(renews) > 0:
+            logging.info("renew invoices: %s" % paid)
         for l in iter(paid):
-            log("paid deleting: %s" % l)
+            #logging.info("paid deleting: %s" % l)
             daemon.delete(l)
         for l in iter(expired):
-            log("expire deleting: %s" % l)
+            #logging.info("expire deleting: %s" % l)
             status = statuses[l]
             daemon.delete(l, state=status)
         return (paid, renews)
 
     def _check_paid_callback(self, result):
-        log("got result: %s %s" % (result[0], result[1]))
+        #logging.info("got result: %s %s" % (result[0], result[1]))
         paid, renews = result
         songs = {s['label']: s for s in self.music_select.iter_songs()}
         for l in iter(paid):
@@ -302,7 +311,7 @@ class Jukebox(object):
     ###########################################################################
 
     def _periodic_check(self):
-        log("invoice checking")
+        #logging.info("invoice checking")
         self._check_paid_defer()
 
     ###########################################################################

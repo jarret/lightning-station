@@ -5,7 +5,7 @@
 import time
 import requests
 import json
-from logger import log
+import logging
 
 RPC_PORT = 8332
 RPC_USER = 'rpc'
@@ -36,13 +36,14 @@ class RPCHost(object):
                     raise Exception("Failed to connect for remote procedure "
                                     "call.")
                 hadFailedConnections = True
-                log("Couldn't connect for remote procedure call, will "
+                logging.info("Couldn't connect for remote procedure call, will "
                     "sleep for five seconds and then try again ({} more "
                     "tries)".format(tries))
                 time.sleep(10)
             else:
                 if hadConnectionFailures:
-                    log('Connected for remote procedure call after retry.')
+                    logging.info('Connected for remote procedure call after '
+                                 'retry.')
                 break
         if not response.status_code in (200, 500):
             raise Exception('RPC connection failure: ' +

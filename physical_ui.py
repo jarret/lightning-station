@@ -5,6 +5,7 @@ import os
 import io
 import time
 import qrcode
+import logging
 
 from twisted.internet import threads
 from twisted.internet.task import LoopingCall
@@ -14,8 +15,6 @@ from waveshare.epaper import EPaper
 from invoicedisplay import InvoiceDisplay
 
 import RPi.GPIO as GPIO
-
-from logger import log
 
 BUTTON_1 = 11
 BUTTON_2 = 12
@@ -81,7 +80,7 @@ class PhysicalUI(object):
     def refresh_cb(self):
         self.blink.stop()
         self.leds_on()
-        log("ok, refreshing")
+        logging.info("ok, refreshing")
 
     def leds_on(self):
         GPIO.output(LED_1, GPIO.HIGH)
@@ -110,7 +109,7 @@ class PhysicalUI(object):
         self.drawing = True
         self.leds_on()
         self.current_label = song['label']
-        log("kicking off draw")
+        logging.info("kicking off draw")
         selection = {'first_line':  song['title'],
                      'second_line': song['artist'],
                      'price':       song['price'],
@@ -123,10 +122,10 @@ class PhysicalUI(object):
 
     def button(self, button_no):
         if self.drawing:
-            log("already drawing, dropping on floor")
+            logging.info("already drawing, dropping button press on floor")
             return
 
-        log("got button: %s" % button_no)
+        logging.info("got button: %s" % button_no)
         if button_no in {BUTTON_1, BUTTON_3}:
             self.draw_song(self.jukebox.browse_next_song())
         else:
@@ -135,7 +134,7 @@ class PhysicalUI(object):
     def finish_drawing(self, result):
         self.drawing = False
         self.leds_off()
-        log("finished_drawing")
+        logging.info("finished_drawing")
         self.screen_ui.delay_refresh_screen()
 
     def finish_drawing_purchased(self, result):
@@ -145,7 +144,7 @@ class PhysicalUI(object):
     def purchased(self, price):
         if self.drawing:
             # TODO - figure out what to do. Queue draw events?
-            log("already drawing, not drawing purchased.")
+            logging.info("already drawing, not drawing purchased.")
             return
         self.drawing = True
         self.leds_on()
@@ -157,7 +156,7 @@ class PhysicalUI(object):
     def renewed(self, old_label, song):
         if self.drawing:
             # TODO - figure out what to do. Queue draw events?
-            log("already drawing, not drawing renewed.")
+            logging.info("already drawing, not drawing renewed.")
             return
         if old_label != self.current_label:
             # don't have to renew stuff we aren't currently drawing
