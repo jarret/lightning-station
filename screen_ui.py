@@ -271,7 +271,7 @@ class ScreenUI(object):
         self.loop.draw_screen()
 
     def delay_refresh_screen(self):
-        self.reactor.callLater(1.0, self.refresh_screen)
+        self.reactor.callLater(2.5, self.refresh_screen)
 
     def exit_on_q(self, key):
         if key in ('q', 'Q'):
