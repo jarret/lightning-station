@@ -264,7 +264,7 @@ class Jukebox(object):
         renews = list(Jukebox._iter_renews(daemon, thread_data, paid, expired))
         #logging.info("renews %s" % renews)
         if len(renews) > 0:
-            logging.info("renew invoices: %s" % paid)
+            logging.info("renew invoices: %s" % renews)
         for l in iter(paid):
             #logging.info("paid deleting: %s" % l)
             daemon.delete(l)

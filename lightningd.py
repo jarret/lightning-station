@@ -7,8 +7,8 @@ from lightning import LightningRpc
 
 
 
-INVOICE_EXPIRY = 60 * 60 * 24 # 24 hours
-#INVOICE_EXPIRY = 60 * 2
+#INVOICE_EXPIRY = 60 * 60 * 24 # 24 hours
+INVOICE_EXPIRY = 60 * 1 # one minute
 
 class LightningDaemon(object):
     def __init__(self, daemon_rpc):
