@@ -55,6 +55,7 @@ class NewBlock(object):
                                   info['block_name'],
                                   info['block_phrase'])
         d.addCallback(self._speak_line_callback)
+        logging.info("sound effect")
         self.audio_player.play_sound_effect('block')
 
     ###########################################################################
