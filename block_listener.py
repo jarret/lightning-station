@@ -35,11 +35,11 @@ class NewBlock(object):
         return line + " " + phrase
 
     def _speak_line_thread_func(height, name, phrase):
-        #logging.info("speak thread func")
         tawker = Tawker()
         time.sleep(1.0)
         line = 'New block: %d' % height
         tawker.tawk(line)
+        logging.info("speak: %s" % line)
         #time.sleep(0.3)
         #tawker.tawk(phrase)
         return line
