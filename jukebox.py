@@ -7,6 +7,7 @@ import time
 import json
 import uuid
 import logging
+import traceback
 from base64 import b64encode
 from mutagen.mp3 import MP3
 
@@ -250,43 +251,53 @@ class Jukebox(object):
                 yield (old_label, new_label, bolt11, expires)
 
     def _check_paid_thread_func(daemon_rpc, thread_data):
-        daemon = LightningDaemon(daemon_rpc)
-        invs = daemon.get_c_lightning_invoices()
+        try:
+            daemon = LightningDaemon(daemon_rpc)
+            invs = daemon.get_c_lightning_invoices()
 
-        labels_to_check = set(d[0] for d in thread_data)
-        if len(labels_to_check) != len(SONGS):
-            logging.info("labels to check: %s" % labels_to_check)
+            labels_to_check = set(d[0] for d in thread_data)
+            if len(labels_to_check) != len(SONGS):
+                logging.info("labels to check: %s" % labels_to_check)
 
-        paid = set(i['label'] for i in invs['invoices'] if
-                   Jukebox._paid_check(labels_to_check, i))
-        expired = set(i['label'] for i in invs['invoices'] if
-                      Jukebox._expired_check(labels_to_check, i))
-        statuses = {i['label']: i['status'] for i in invs['invoices']}
-        if len(paid) > 0:
-            logging.info("paid invoices: %s" % paid)
-        #logging.info("paid: %s" % paid)
-        #logging.info("expired: %s" % expired)
-        if len(expired) > 0:
-            logging.info("expired invoices: %s" % expired)
-        renews = list(Jukebox._iter_renews(daemon, thread_data, paid, expired))
-        #logging.info("renews %s" % renews)
-        if len(renews) > 0:
-            logging.info("renew invoices: %s" % renews)
-        for l in iter(paid):
-            #logging.info("paid deleting: %s" % l)
-            s = daemon.delete(l)
-            if "code" in s.keys():
-                logging.info(s)
-        for l in iter(expired):
-            #logging.info("expire deleting: %s" % l)
-            status = statuses[l]
-            s = daemon.delete(l, state=status)
-            if "code" in s.keys():
-                logging.info(s)
-        return (paid, renews)
+            paid = set(i['label'] for i in invs['invoices'] if
+                       Jukebox._paid_check(labels_to_check, i))
+            expired = set(i['label'] for i in invs['invoices'] if
+                          Jukebox._expired_check(labels_to_check, i))
+            statuses = {i['label']: i['status'] for i in invs['invoices']}
+            if len(paid) > 0:
+                logging.info("paid invoices: %s" % paid)
+            #logging.info("paid: %s" % paid)
+            #logging.info("expired: %s" % expired)
+            if len(expired) > 0:
+                logging.info("expired invoices: %s" % expired)
+            renews = list(Jukebox._iter_renews(daemon, thread_data, paid,
+                          expired))
+            #logging.info("renews %s" % renews)
+            if len(renews) > 0:
+                logging.info("renew invoices: %s" % renews)
+            for l in iter(paid):
+                #logging.info("paid deleting: %s" % l)
+                s = daemon.delete(l)
+                if "code" in s.keys():
+                    logging.info(s)
+            for l in iter(expired):
+                #logging.info("expire deleting: %s" % l)
+                status = statuses[l]
+                s = daemon.delete(l, state=status)
+                if "code" in s.keys():
+                    logging.info(s)
+            return (paid, renews)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.exception(e)
+            return None
+
 
     def _check_paid_callback(self, result):
         #logging.info("got result: %s %s" % (result[0], result[1]))
+        if not result:
+            logging.error("got exception in check_paid_thread_func")
+            self.reactor.callLater(CHECK_PERIOD, self._periodic_check)
         paid, renews = result
         songs = {s['label']: s for s in self.music_select.iter_songs()}
         for l in iter(paid):
