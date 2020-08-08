@@ -9,7 +9,7 @@ from lightning import LightningRpc
 
 
 #INVOICE_EXPIRY = 60 * 60 * 24 # 24 hours
-INVOICE_EXPIRY = 81 # prime number
+INVOICE_EXPIRY = 83 # prime number
 
 class LightningDaemon(object):
     def __init__(self, daemon_rpc):
@@ -17,9 +17,9 @@ class LightningDaemon(object):
 
 
     def invoice_c_lightning(self, msatoshi, label, description):
+        expiry = INVOICE_EXPIRY + random.randint(3, 9)
         result = self.rpc.invoice(msatoshi, label, description,
-                                  expiry=INVOICE_EXPIRY)
-        expiry += random.randint(3, 9)
+                                  expiry=expiry)
         logging.info("invoicing daemon. got: %s" %
                      json.dumps(result, indent=1, sort_keys=True))
         return result
