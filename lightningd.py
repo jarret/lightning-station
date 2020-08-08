@@ -3,6 +3,7 @@
 # file LICENSE or http://www.opensource.org/licenses/mit-license.php
 import json
 import logging
+import random
 from lightning import LightningRpc
 
 
@@ -18,6 +19,7 @@ class LightningDaemon(object):
     def invoice_c_lightning(self, msatoshi, label, description):
         result = self.rpc.invoice(msatoshi, label, description,
                                   expiry=INVOICE_EXPIRY)
+        expiry += random.randint(3, 9)
         logging.info("invoicing daemon. got: %s" %
                      json.dumps(result, indent=1, sort_keys=True))
         return result

@@ -254,7 +254,8 @@ class Jukebox(object):
         invs = daemon.get_c_lightning_invoices()
 
         labels_to_check = set(d[0] for d in thread_data)
-        logging.info("labels to check: %s" % labels_to_check)
+        if len(labels_to_check) != len(SONGS):
+            logging.info("labels to check: %s" % labels_to_check)
 
         paid = set(i['label'] for i in invs['invoices'] if
                    Jukebox._paid_check(labels_to_check, i))
