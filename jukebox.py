@@ -15,7 +15,7 @@ from twisted.internet import task, threads
 from lightningd import LightningDaemon
 from audio_player import AudioPlayer
 
-SECONDS_TO_EXPIRY = 20
+SECONDS_TO_EXPIRY = 19
 
 CHECK_PERIOD = 1.0
 
@@ -223,13 +223,16 @@ class Jukebox(object):
         if not invoice['label'] in labels_to_check:
             return False
         if invoice['status'] == 'paid':
+            logging.info("paid not expired: %s" % invoice['label'])
             return False
         if invoice['status'] == 'expired':
+            logging.info("expired: %s" % invoice['label'])
             return True
         # treat uppaid but near expired as expired
         current_time = int(time.time())
         near = (current_time + SECONDS_TO_EXPIRY) > invoice['expires_at']
-
+        if near:
+            logging.info("near: %s" % invoice['label'])
         return near
 
     def _paid_check(labels_to_check, invoice):
@@ -249,7 +252,10 @@ class Jukebox(object):
     def _check_paid_thread_func(daemon_rpc, thread_data):
         daemon = LightningDaemon(daemon_rpc)
         invs = daemon.get_c_lightning_invoices()
+
         labels_to_check = set(d[0] for d in thread_data)
+        logging.info("labels to check: %s" % labels_to_check)
+
         paid = set(i['label'] for i in invs['invoices'] if
                    Jukebox._paid_check(labels_to_check, i))
         expired = set(i['label'] for i in invs['invoices'] if
@@ -267,11 +273,15 @@ class Jukebox(object):
             logging.info("renew invoices: %s" % renews)
         for l in iter(paid):
             #logging.info("paid deleting: %s" % l)
-            daemon.delete(l)
+            s = daemon.delete(l)
+            if "code" in s.keys():
+                logging.info(s)
         for l in iter(expired):
             #logging.info("expire deleting: %s" % l)
             status = statuses[l]
-            daemon.delete(l, state=status)
+            s = daemon.delete(l, state=status)
+            if "code" in s.keys():
+                logging.info(s)
         return (paid, renews)
 
     def _check_paid_callback(self, result):

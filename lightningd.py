@@ -8,7 +8,7 @@ from lightning import LightningRpc
 
 
 #INVOICE_EXPIRY = 60 * 60 * 24 # 24 hours
-INVOICE_EXPIRY = 60 * 30 # one minute
+INVOICE_EXPIRY = 81 # prime number
 
 class LightningDaemon(object):
     def __init__(self, daemon_rpc):
