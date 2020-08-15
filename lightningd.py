@@ -4,7 +4,7 @@
 import json
 import logging
 import random
-from lightning import LightningRpc
+from pyln.client import LightningRpc
 
 
 
