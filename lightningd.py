@@ -30,8 +30,13 @@ class LightningDaemon(object):
         return result
 
     def delete(self, label, state="paid"):
-        result = self.rpc.delinvoice(label, state)
-#        logging.info(json.dumps(result, indent=1, sort_keys=True))
+        try:
+            result = self.rpc.delinvoice(label, state)
+        except IOError:
+            # unpaid could have expired in the last split second due
+            # to a race, so try again
+            if state == "unpaid":
+                result = self.rpc.delinvoice(label, "expired")
         return result
 
     def getinfo(self):
