@@ -23,50 +23,74 @@ CHECK_PERIOD = 1.0
 ###############################################################################
 
 SONGS = [
-#    {'path':   "never-gonna-give-you-up.mp3",
-#     'artist': "Rick Astley",
-#     'title':  "Never Gonna Give You Up",
-#     'price':  11.123},
-#    {'path':   "banana-phone.mp3",
-#     'artist': "Raffi",
-#     'title':  "Banana Phone",
-#     'price':  10.321},
     {'path':   "thunder-rolls.mp3",
      'artist': "Garth Brooks",
      'title':  "Thunder Rolls",
-     'price':  14.456},
+     'price':  6.15},
     {'path':   "hustlin.mp3",
      'artist': "Rick Ross",
      'title':  "Hustlin'",
-     'price':  22.222},
+     'price':  6.15},
     {'path':   "mo-money.mp3",
      'artist': "The Notorious B.I.G.",
      'title':  "Mo Money Mo Problems",
-     'price':  14.141},
-#    {'path':   "bitcoin-cash.mp3",
-#     'artist': "Lil Windex",
-#     'title':  "Bitcoin Ca$h",
-#     'price':  0.001},
+     'price':  6.15},
     {'path':   "money.mp3",
      'artist': "Pink Floyd",
      'title':  "Money",
-     'price':  12.345},
+     'price':  6.15},
     {'path':   "riders-on-the-storm.mp3",
      'artist': "The Doors",
      'title':  "Riders On The Storm",
-     'price':  13.777},
+     'price':  6.15},
     {'path':   "thunderstruck.mp3",
      'artist': "AC/DC",
      'title':  "Thunderstruck",
-     'price':  11.333},
-    #{'path':   "friday.mp3",
-    # 'artist': "Rebecca Black",
-    # 'title':  "Friday",
-    # 'price':  12.555},
+     'price':  6.15},
     {'path':   "ride-the-lightning.mp3",
      'artist': "Metallica",
      'title':  "Ride The Lightning",
-     'price':  13.123},
+     'price':  6.15},
+    {'path':   "money-matters.mp3",
+     'artist': "S.N.F.U.",
+     'title':  "Money Matters",
+     'price':  6.15},
+    {'path':   "lightning-crashes.mp3",
+     'artist': "Live",
+     'title':  "Money ",
+     'price':  6.15},
+    {'path':   "money-thats-what-i-want.mp3",
+     'artist': "Barrett Strong",
+     'title':  "Money (That's What I Want)",
+     'price':  6.15},
+    {'path':   "money-thats-what-i-want.mp3",
+     'artist': "The Supremes",
+     'title':  "Money (That's What I Want)",
+     'price':  6.15},
+    {'path':   "money-money-money.mp3",
+     'artist': "ABBA",
+     'title':  "Money, Money, Money",
+     'price':  6.15},
+    {'path':   "c-r-e-a-m.mp3",
+     'artist': "Wu Tang Clan",
+     'title':  "C.R.E.A.M.",
+     'price':  6.15},
+    {'path':   "gold-digger.mp3",
+     'artist': "Kayne West",
+     'title':  "Gold Digger",
+     'price':  6.15},
+    {'path':   "money-for-nothing.mp3",
+     'artist': "Dire Straits",
+     'title':  "Money For Nothing",
+     'price':  6.15},
+    {'path':   "if-i-had-a-million-dollars.mp3",
+     'artist': "Barenaked Ladies",
+     'title':  "If I Had $1000000",
+     'price':  6.15},
+    {'path':   "i-get-money.mp3",
+     'artist': "50 Cent",
+     'title':  "I Get Money",
+     'price':  6.15},
 ]
 
 MOCK_BOLT11 = "lnbc50n1pdm373mpp50hlcjdrcm9u3qqqs4a926g63d3t5qwyndytqjjgknskuvmd9kc2sdz2d4shyapwwpujq6twwehkjcm9ypnx7u3qxys8q6tcv4k8xtpqw4ek2ujlwd68y6twvuazqg3zyqxqzjcuvzstexcj4zcz7ldtkwz8t5pdsghauyhkdqdxccx8ts3ta023xqzwgwxuvlu9eehh97d0qcu9k5a4u2glenrekp7w9sswydl4hneyjqqzkxf54"
@@ -87,16 +111,16 @@ class MusicSelect(object):
         return song
 
     def get_next_song(self):
-        self.index += 1
+        self.index -= 1
+        if self.index < 0:
+            # wrap index
+            self.index = len(self.songs) - 2
         i = self.index % len(self.songs)
         s = self.songs[i]
         return s
 
     def get_prev_song(self):
-        self.index -= 1
-        if self.index < 0:
-            # wrap index
-            self.index = len(self.songs) - 2
+        self.index += 1
         i = self.index % len(self.songs)
         s = self.songs[i]
         return s
