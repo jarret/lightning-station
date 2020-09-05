@@ -8,6 +8,7 @@ import urwid
 import textwrap
 import json
 import logging
+import subprocess
 
 from twisted.internet.task import LoopingCall
 
@@ -278,6 +279,8 @@ class ScreenUI(object):
             raise urwid.ExitMainLoop()
         if key in ('r', 'R'):
             self.refresh_screen()
+        if key in ('s', 'S'):
+            subprocess.call(["sudo", "shutdown", "now"])
 
     ###########################################################################
 
