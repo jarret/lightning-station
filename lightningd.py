@@ -46,7 +46,7 @@ class LightningDaemon(object):
 
     def delete(self, label, state="paid"):
         try:
-            self._delete(label, state=state)
+            return self._delete(label, state=state)
         except:
             return None
 
