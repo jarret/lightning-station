@@ -202,8 +202,8 @@ class Jukebox(object):
         self.music_select = MusicSelect(music_dir)
         self.daemon_rpc = daemon_rpc
         self.jukebox_queue = JukeboxQueue(screen_ui)
-        self._init_invoices()
         self.is_init = False
+        self._init_invoices()
 
     ###########################################################################
 
@@ -232,6 +232,7 @@ class Jukebox(object):
                 s['bolt11'] = bolt11
                 s['expires'] = expires
                 s['label'] = label
+            logging.info("jukebox initialized")
             self.is_init = True
         except:
             logging.info("ln daemon invoiceing not ready")
