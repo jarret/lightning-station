@@ -17,26 +17,32 @@ class NodeInfo(object):
     ###########################################################################
 
     def _get_fee_rate(block):
-        rate = Bitcoind.estimatesmartfee(block)['feerate']
-        return rate * 100000.0
+        info = Bitcoind.estimatesmartfee(block)
+        if not info:
+            return 999.9
+        return info['feerate'] * 100000.0
 
     def _get_fee_rate_eco(block):
-        rate = Bitcoind.estimatesmartfee_eco(block)['feerate']
-        return rate * 100000.0
+        info = Bitcoind.estimatesmartfee_eco(block)
+        if not info:
+            return 999.9
+        return info['feerate'] * 100000.0
 
     ###########################################################################
 
     def _poll_fee_est_thread_func():
-        fee_estimate = {b: NodeInfo._get_fee_rate(b) for b in FEE_RATE_BLOCKS}
+        fee_estimate = {b: NodeInfo._get_fee_rate(b) for b in
+                        FEE_RATE_BLOCKS}
         fee_estimate_eco = {b: NodeInfo._get_fee_rate_eco(b) for b in
                             FEE_RATE_BLOCKS}
         return {'fee_estimate':     fee_estimate,
-                'fee_estimate_eco': fee_estimate_eco,
-               }
+                'fee_estimate_eco': fee_estimate_eco}
 
     def _poll_fee_est_callback(self, result):
-        self.screen_ui.update_info(result)
         self.reactor.callLater(10.0, self._poll_fee_est_defer)
+        if not result:
+            return
+        self.screen_ui.update_info(result)
 
     def _poll_fee_est_defer(self):
         d = threads.deferToThread(NodeInfo._poll_fee_est_thread_func)
@@ -46,13 +52,17 @@ class NodeInfo(object):
 
     def _poll_network_thread_func():
         network_info = Bitcoind.getnetworkinfo()
+        if not network_info:
+            return None
         return {'net_connections':  network_info['connections'],
                 'net_version':      network_info['subversion'],
                }
 
     def _poll_network_callback(self, result):
-        self.screen_ui.update_info(result)
         self.reactor.callLater(10.0, self._poll_network_defer)
+        if not result:
+            return
+        self.screen_ui.update_info(result)
 
     def _poll_network_defer(self):
         d = threads.deferToThread(NodeInfo._poll_network_thread_func)
@@ -62,6 +72,8 @@ class NodeInfo(object):
 
     def _poll_mempool_thread_func():
         mempool_info = Bitcoind.getmempoolinfo()
+        if not mempool_info:
+            return None
         mempool_pct = ((mempool_info['usage'] / mempool_info['maxmempool']) *
                        100.0)
         return {'mempool_txs':      mempool_info['size'],
@@ -71,8 +83,10 @@ class NodeInfo(object):
                }
 
     def _poll_mempool_callback(self, result):
-        self.screen_ui.update_info(result)
         self.reactor.callLater(1.0, self._poll_mempool_defer)
+        if not result:
+            return
+        self.screen_ui.update_info(result)
 
     def _poll_mempool_defer(self):
         d = threads.deferToThread(NodeInfo._poll_mempool_thread_func)
@@ -110,12 +124,16 @@ class LnNodeInfo(object):
     def _poll_ln_nodes_thread_func(lightning_rpc):
         #return {'ln_node_peers': 10}
         nodes = LnNodeInfo._getnodes(lightning_rpc)
+        if not nodes:
+            return None
         n_nodes = LnNodeInfo._sum_nodes(nodes)
         return {'ln_node_peers': n_nodes}
 
     def _poll_ln_nodes_callback(self, result):
-        self.screen_ui.update_info(result)
         self.reactor.callLater(NODES_INTERVAL, self._poll_ln_nodes_defer)
+        if not result:
+            return
+        self.screen_ui.update_info(result)
 
     def _poll_ln_nodes_defer(self):
         d = threads.deferToThread(LnNodeInfo._poll_ln_nodes_thread_func,
@@ -137,6 +155,8 @@ class LnNodeInfo(object):
 
     def _poll_ln_funds_thread_func(lightning_rpc):
         funds = LnNodeInfo._getfunds(lightning_rpc)
+        if not funds:
+            return None
         theirs, ours, chain = LnNodeInfo._sum_funds(funds)
         return {'ln_channel_ours':   ours,
                 'ln_channel_theirs': theirs,
@@ -144,8 +164,10 @@ class LnNodeInfo(object):
                }
 
     def _poll_ln_funds_callback(self, result):
-        self.screen_ui.update_info(result)
         self.reactor.callLater(FUNDS_INTERVAL, self._poll_ln_funds_defer)
+        if not result:
+            return None
+        self.screen_ui.update_info(result)
 
     def _poll_ln_funds_defer(self):
         d = threads.deferToThread(LnNodeInfo._poll_ln_funds_thread_func,
@@ -160,6 +182,8 @@ class LnNodeInfo(object):
 
     def _poll_ln_node_info_thread_func(lightning_rpc):
         info = LnNodeInfo._getinfo(lightning_rpc)
+        if not info:
+            return None
         return {'ln_version':           info['version'],
                 'ln_inet_peers':        info['num_peers'],
                 'ln_alias':             info['alias'],
@@ -169,8 +193,10 @@ class LnNodeInfo(object):
                }
 
     def _poll_ln_node_info_callback(self, result):
-        self.screen_ui.update_info(result)
         self.reactor.callLater(INFO_INTERVAL, self._poll_ln_node_info_defer)
+        if not result:
+            return
+        self.screen_ui.update_info(result)
 
     def _poll_ln_node_info_defer(self):
         d = threads.deferToThread(LnNodeInfo._poll_ln_node_info_thread_func,

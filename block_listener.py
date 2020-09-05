@@ -4,7 +4,7 @@
 
 import time
 import logging
-from twisted.internet import threads
+from twisted.internet import threads, reactor
 from txzmq import ZmqEndpoint, ZmqFactory, ZmqSubConnection
 
 from bitcoinrpc import Bitcoind
@@ -44,6 +44,11 @@ class NewBlock(object):
         #tawker.tawk(phrase)
         return line
 
+    def _speak_error_thread_func():
+        tawker = Tawker()
+        tawker.tawk("bitcoin node not ready")
+        return None
+
     def _speak_line_callback(self, result):
         #logging.info("spoke line: %s" % result)
         self.new_block_queue.finish_block()
@@ -58,18 +63,34 @@ class NewBlock(object):
         logging.info("sound effect")
         self.audio_player.play_sound_effect('block')
 
+    def _speak_error_defer(self):
+        logging.info("error line")
+        d = threads.deferToThread(NewBlock._speak_error_thread_func)
+
     ###########################################################################
 
     def _getblock_cmd_thread_func(block_hash):
+        if not block_hash:
+            return None
         #logging.info("getblock thread func")
         info = Bitcoind.getblock(block_hash)
+        if not info:
+            print("can't get block")
+            return None
         raw = Bitcoind.getblock_raw(block_hash)
+        if not raw:
+            print("can't get raw")
+            return None
         info['raw'] = raw
         info['name'] = gen_block_name(block_hash)
         info['phrase'] = get_phrase()
         return info
 
     def _getblock_cmd_callback(self, result):
+        if not result:
+            self._speak_error_defer()
+            reactor.callLater(5.0, self._retry_getblock_cmd)
+            return
         #logging.info("getblock callback")
         info = {'block_arrival_time': self.arrival_time,
                 'block_name':         result['name'],
@@ -89,6 +110,14 @@ class NewBlock(object):
                                   self.block_hash)
         d.addCallback(self._getblock_cmd_callback)
 
+    def _retry_getblock_cmd(self):
+        bc_info = Bitcoind.getblockchaininfo()
+        if not bc_info:
+            reactor.callLater(5.0, self._retry_getblock_cmd)
+            return
+        self.block_hash = bc_info['bestblockhash']
+        self._getblock_cmd_defer()
+
     ###########################################################################
 
     def run(self):
@@ -102,7 +131,7 @@ class NewBlockQueue(object):
         They are queued up for handling since they can arrive faster than
         they are able to be handled.
     """
-    def __init__(self, reactor, screen_ui, audio_player, first_block_hash):
+    def __init__(self, reactor, screen_ui, audio_player, best_block_hash):
         f = ZmqFactory()
         f.reactor = reactor
         e = ZmqEndpoint("connect", "tcp://127.0.0.1:28332")
@@ -114,7 +143,7 @@ class NewBlockQueue(object):
         self.queue_running = False
         self.audio_player = audio_player
 
-        new_block = NewBlock(self, first_block_hash, self.screen_ui,
+        new_block = NewBlock(self, best_block_hash, self.screen_ui,
                              audio_player)
         self.new_block_queue.append(new_block)
         self._try_next()

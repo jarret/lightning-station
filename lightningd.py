@@ -15,23 +15,28 @@ class LightningDaemon(object):
     def __init__(self, daemon_rpc):
         self.rpc = LightningRpc(daemon_rpc)
 
-
     def invoice_c_lightning(self, msatoshi, label, description):
         expiry = INVOICE_EXPIRY + random.randint(3, 9)
-        result = self.rpc.invoice(msatoshi, label, description,
-                                  expiry=expiry)
-        logging.info("invoicing daemon. got: %s" %
-                     json.dumps(result, indent=1, sort_keys=True))
-        return result
+        try:
+            result = self.rpc.invoice(msatoshi, label, description,
+                                      expiry=expiry)
+            logging.info("invoicing daemon. got: %s" %
+                         json.dumps(result, indent=1, sort_keys=True))
+            return result
+        except:
+            return None
 
     def get_c_lightning_invoices(self):
-        result = self.rpc.listinvoices()
+        try:
+            return self.rpc.listinvoices()
+        except:
+            return None
         #logging.info(json.dumps(result, indent=1, sort_keys=True))
-        return result
 
-    def delete(self, label, state="paid"):
+    def _delete(self, label, state="paid"):
         try:
             result = self.rpc.delinvoice(label, state)
+            return result
         except IOError:
             # unpaid could have expired in the last split second due
             # to a race, so try again
@@ -39,11 +44,26 @@ class LightningDaemon(object):
                 result = self.rpc.delinvoice(label, "expired")
         return result
 
+    def delete(self, label, state="paid"):
+        try:
+            self._delete(label, state=state)
+        except:
+            return None
+
     def getinfo(self):
-        return self.rpc.getinfo()
+        try:
+            return self.rpc.getinfo()
+        except:
+            return None
 
     def listfunds(self):
-        return self.rpc.listfunds()
+        try:
+            return self.rpc.listfunds()
+        except:
+            return None
 
     def listnodes(self):
-        return self.rpc.listnodes()
+        try:
+            return self.rpc.listnodes()
+        except:
+            return None

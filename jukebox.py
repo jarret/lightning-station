@@ -222,14 +222,17 @@ class Jukebox(object):
     ###########################################################################
 
     def _init_invoices(self):
-        daemon = LightningDaemon(self.daemon_rpc)
-        for s in self.music_select.iter_songs():
-            bolt11, expires, label = Jukebox._invoice(daemon, s['price'],
-                                                      s['title'],
-                                                      s['artist'])
-            s['bolt11'] = bolt11
-            s['expires'] = expires
-            s['label'] = label
+        try:
+            daemon = LightningDaemon(self.daemon_rpc)
+            for s in self.music_select.iter_songs():
+                bolt11, expires, label = Jukebox._invoice(daemon, s['price'],
+                                                          s['title'],
+                                                          s['artist'])
+                s['bolt11'] = bolt11
+                s['expires'] = expires
+                s['label'] = label
+        except:
+            self.reactor.callLater(3.0, self._init_invoices)
 
     def browse_next_song(self):
         return self.music_select.get_next_song()
@@ -274,8 +277,10 @@ class Jukebox(object):
         try:
             daemon = LightningDaemon(daemon_rpc)
             invs = daemon.get_c_lightning_invoices()
+            if not invs:
+                return None
 
-            labels_to_check = set(d[0] for d in thread_data)
+            labels_to_check = set(d[0] for d in thread_data if d is not None)
             if len(labels_to_check) != len(SONGS):
                 logging.info("labels to check: %s" % labels_to_check)
 
@@ -318,6 +323,7 @@ class Jukebox(object):
         if not result:
             logging.error("got exception in check_paid_thread_func")
             self.reactor.callLater(CHECK_PERIOD, self._periodic_check)
+            return
         paid, renews = result
         songs = {s['label']: s for s in self.music_select.iter_songs()}
         for l in iter(paid):
@@ -340,12 +346,14 @@ class Jukebox(object):
         self.reactor.callLater(CHECK_PERIOD, self._periodic_check)
 
     def _thread_data(self, song):
+        if 'label' not in song:
+            return None
         # the info needed to check and renew invoices
         return (song['label'], song['title'], song['artist'], song['price'])
 
     def _check_paid_defer(self):
         thread_data = [self._thread_data(s) for s in
-                       self.music_select.iter_songs()]
+                       self.music_select.iter_songs() if s is not None]
         d = threads.deferToThread(Jukebox._check_paid_thread_func,
                                   self.daemon_rpc, thread_data)
         d.addCallback(self._check_paid_callback)
