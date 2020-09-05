@@ -164,7 +164,7 @@ class PhysicalUI(object):
         self.draw_song(song)
 
     def run(self):
-        if not self.jukebox.is_init():
+        if not self.jukebox.is_init:
             self.reactor.callLater(2.0, self.run)
             return
         self.reactor.callLater(2.0, self.button, BUTTON_1)
