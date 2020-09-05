@@ -234,6 +234,7 @@ class Jukebox(object):
                 s['label'] = label
             self.is_init = True
         except:
+            logging.info("ln daemon invoiceing not ready")
             self.reactor.callLater(3.0, self._init_invoices)
 
     def browse_next_song(self):

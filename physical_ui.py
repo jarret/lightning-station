@@ -165,6 +165,8 @@ class PhysicalUI(object):
 
     def run(self):
         if not self.jukebox.is_init:
+            logging.info("not init, waiting for jukebox to become ready")
             self.reactor.callLater(2.0, self.run)
             return
+        logging.info("jukebox ready, redrawing")
         self.reactor.callLater(2.0, self.button, BUTTON_1)
