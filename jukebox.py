@@ -203,6 +203,7 @@ class Jukebox(object):
         self.daemon_rpc = daemon_rpc
         self.jukebox_queue = JukeboxQueue(screen_ui)
         self._init_invoices()
+        self.is_init = False
 
     ###########################################################################
 
@@ -231,6 +232,7 @@ class Jukebox(object):
                 s['bolt11'] = bolt11
                 s['expires'] = expires
                 s['label'] = label
+            self.is_init = True
         except:
             self.reactor.callLater(3.0, self._init_invoices)
 
