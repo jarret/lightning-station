@@ -3,6 +3,7 @@
 # file LICENSE or http://www.opensource.org/licenses/mit-license.php
 
 
+import time
 from bitcoind import StaticBitcoind
 from block_stats import BlockStats
 
@@ -15,7 +16,10 @@ if __name__ == "__main__":
     height = StaticBitcoind.getblockchaininfo()['blocks']
 
     for h in range(height-10, height):
+        start_time = time.time()
         block_hash = StaticBitcoind.getblockhash(h)
         bs = BlockStats(block_hash)
         print("------ Block %d ---------" % h)
         print(bs.run())
+        print("elapsed for block %d: %0.3f seconds" % (
+            h, time.time() - start_time))
