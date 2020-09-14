@@ -28,7 +28,7 @@ if __name__ == "__main__":
     if end_block > height:
         sys.exit("end block too large")
 
-    for h in range(height-10, height):
+    for h in range(start_block, end_block):
         start_time = time.time()
         block_hash = StaticBitcoind.getblockhash(h)
         bs = BlockStats(block_hash)
