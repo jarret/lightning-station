@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
 # Copyright (c) 2020 Jarret Dyrbye
 # Distributed under the MIT software license, see the accompanying
 # file LICENSE or http://www.opensource.org/licenses/mit-license.php
 
 
 import time
+import sys
 from bitcoind import StaticBitcoind
 from block_stats import BlockStats
 
@@ -13,7 +15,18 @@ StaticBitcoind.URL = StaticBitcoind.gen_url()
 
 if __name__ == "__main__":
 
+    try:
+        start_block = int(sys.argv[1])
+        end_block = int(sys.argv[2])
+    except:
+        sys.exit("please provide start_block and end_block integers")
+
     height = StaticBitcoind.getblockchaininfo()['blocks']
+
+    if start_block > height:
+        sys.exit("start block too large")
+    if end_block > height:
+        sys.exit("end block too large")
 
     for h in range(height-10, height):
         start_time = time.time()
