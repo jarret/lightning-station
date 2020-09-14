@@ -17,9 +17,9 @@ if __name__ == "__main__":
 
     try:
         start_block = int(sys.argv[1])
-        end_block = int(sys.argv[2])
+        end_block = start_block + int(sys.argv[2])
     except:
-        sys.exit("please provide start_block and end_block integers")
+        sys.exit("please provide start_block and n_blocks integers")
 
     height = StaticBitcoind.getblockchaininfo()['blocks']
 
