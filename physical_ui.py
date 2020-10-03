@@ -16,15 +16,20 @@ from invoicedisplay import InvoiceDisplay
 
 import RPi.GPIO as GPIO
 
-BUTTON_1 = 11
-BUTTON_2 = 12
-BUTTON_3 = 13
-BUTTON_4 = 15
+#BUTTON_1 = 11
+#BUTTON_2 = 12
+#BUTTON_3 = 13
+#BUTTON_4 = 15
 
-LED_1 = 16
-LED_2 = 18
-LED_3 = 19
-LED_4 = 21
+#LED_1 = 16
+#LED_2 = 18
+#LED_3 = 19
+#LED_4 = 21
+
+BUTTON_1 = 11
+BUTTON_2 = 15
+
+LED_1 = 13
 
 
 
@@ -50,32 +55,34 @@ class PhysicalUI(object):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(BUTTON_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(BUTTON_2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(BUTTON_3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(BUTTON_4, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+#        GPIO.setup(BUTTON_3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+#        GPIO.setup(BUTTON_4, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         GPIO.setup(LED_1, GPIO.OUT)
-        GPIO.setup(LED_2, GPIO.OUT)
-        GPIO.setup(LED_3, GPIO.OUT)
-        GPIO.setup(LED_4, GPIO.OUT)
+#        GPIO.setup(LED_2, GPIO.OUT)
+#        GPIO.setup(LED_3, GPIO.OUT)
+#        GPIO.setup(LED_4, GPIO.OUT)
 
-        self.state = {LED_1: False,
-                      LED_2: False,
-                      LED_3: False,
-                      LED_4: False}
+#        self.state = {LED_1: False,
+#                      LED_2: False,
+#                      LED_3: False,
+#                      LED_4: False}
+        self.state = {LED_1: False}
+
         GPIO.output(LED_1, GPIO.LOW)
-        GPIO.output(LED_2, GPIO.LOW)
-        GPIO.output(LED_3, GPIO.LOW)
-        GPIO.output(LED_4, GPIO.LOW)
+#        GPIO.output(LED_2, GPIO.LOW)
+#        GPIO.output(LED_3, GPIO.LOW)
+#        GPIO.output(LED_4, GPIO.LOW)
 
 
         GPIO.add_event_detect(BUTTON_1, GPIO.FALLING,
                               callback=self.button_catch, bouncetime=150)
         GPIO.add_event_detect(BUTTON_2, GPIO.FALLING,
                               callback=self.button_catch, bouncetime=150)
-        GPIO.add_event_detect(BUTTON_3, GPIO.FALLING,
-                              callback=self.button_catch, bouncetime=150)
-        GPIO.add_event_detect(BUTTON_4, GPIO.FALLING,
-                              callback=self.button_catch, bouncetime=150)
+#        GPIO.add_event_detect(BUTTON_3, GPIO.FALLING,
+#                              callback=self.button_catch, bouncetime=150)
+#        GPIO.add_event_detect(BUTTON_4, GPIO.FALLING,
+#                              callback=self.button_catch, bouncetime=150)
 
     def refresh_cb(self):
         self.blink.stop()
@@ -84,16 +91,16 @@ class PhysicalUI(object):
 
     def leds_on(self):
         GPIO.output(LED_1, GPIO.HIGH)
-        GPIO.output(LED_2, GPIO.HIGH)
-        GPIO.output(LED_3, GPIO.HIGH)
-        GPIO.output(LED_4, GPIO.HIGH)
+#        GPIO.output(LED_2, GPIO.HIGH)
+#        GPIO.output(LED_3, GPIO.HIGH)
+#        GPIO.output(LED_4, GPIO.HIGH)
         self.led_state = True
 
     def leds_off(self):
         GPIO.output(LED_1, GPIO.LOW)
-        GPIO.output(LED_2, GPIO.LOW)
-        GPIO.output(LED_3, GPIO.LOW)
-        GPIO.output(LED_4, GPIO.LOW)
+#        GPIO.output(LED_2, GPIO.LOW)
+#        GPIO.output(LED_3, GPIO.LOW)
+#        GPIO.output(LED_4, GPIO.LOW)
         self.led_state = False
 
     def leds_flip(self):
@@ -126,7 +133,12 @@ class PhysicalUI(object):
             return
 
         logging.info("got button: %s" % button_no)
-        if button_no in {BUTTON_1, BUTTON_3}:
+        #if button_no in {BUTTON_1, BUTTON_3}:
+        #    self.draw_song(self.jukebox.browse_next_song())
+        #else:
+        #    self.draw_song(self.jukebox.browse_prev_song())
+
+        if button_no == BUTTON_1:
             self.draw_song(self.jukebox.browse_next_song())
         else:
             self.draw_song(self.jukebox.browse_prev_song())
