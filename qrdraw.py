@@ -24,6 +24,7 @@ class QRDraw(object):
         qr.add_data(content)
         img = qr.make_image(fill_color="black", back_color="white")
         l = img.convert("L")
+        img.rotate(90)
         self.width, self.height = l.size
         d = l.getdata()
         self.data = bytearray(d)

@@ -56,7 +56,7 @@ class InvoiceDisplay(object):
         #logging.info("set rotation")
         start_time = time.time()
         self.paper.send(
-            SetCurrentDisplayRotation(SetCurrentDisplayRotation.FLIP))
+            SetCurrentDisplayRotation(SetCurrentDisplayRotation.NORMAL))
         #logging.info("set rotation: %0.2f seconds" % (
         #   time.time() - start_time))
 
