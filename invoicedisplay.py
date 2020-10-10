@@ -5,6 +5,7 @@
 
 import time
 import logging
+import textwrap
 
 import RPi.GPIO as GPIO
 
@@ -101,7 +102,7 @@ class InvoiceDisplay(object):
     def _draw_qr(self, qr_draw):
         start_time = time.time()
         read_count = 0
-        x_offset, y_offset, scale = qr_draw.place_inside_box(0, 0, 600)
+        x_offset, y_offset, scale = qr_draw.place_inside_box(200, 0, 600)
         for color, x1, y1, x2, y2 in qr_draw.iter_draw_params(x_offset,
                                                               y_offset,
                                                               scale):
@@ -119,30 +120,54 @@ class InvoiceDisplay(object):
         #logging.info("refresh update: %0.2f seconds" % (
         #   time.time() - start_time))
 
-    def _draw_label(self, line1, line2, price):
+    def _draw_label(self, title_lines, artist_lines, price_lines):
         start_time = time.time()
+        self._set_font_size_medium()
+        x = 10
+        y = 80   
+        for line in title_lines:
+            logging.info("title line: %s" % line)
+            self.paper.send(DisplayText(x, y, line.encode("gb2312")))
+            y += 45
+
+        y += 60
         self._set_font_size_small()
-        self.paper.send(DisplayText(605, 40, line1.encode("gb2312")))
-        self.paper.send(DisplayText(605, 150, line2.encode("gb2312")))
-        self.paper.send(DisplayText(605, 560, price.encode("gb2312")))
+        for line in artist_lines:
+            logging.info("artist line: %s" % line)
+            self.paper.send(DisplayText(x, y, line.encode("gb2312")))
+            y += 30
+        y += 120
+        self._set_font_size_medium()
+        for line in price_lines:
+            logging.info("price_line: %s" % line)
+            self.paper.send(DisplayText(x+5, y, line.encode("gb2312")))
+            y += 45
         #logging.info("label: %0.2f seconds" % (time.time() - start_time))
 
     def _clear_screen(self):
         #logging.info("clearing screen")
         self.paper.send(ClearScreen())
 
+    def split_lines(self, string, wrap):
+        lines = textwrap.wrap(string, wrap)
+        padded = []
+        for line in lines:
+            while len(line) < (wrap - 1):
+                line = " " + line + " "
+            padded.append(line)
+        return padded
+
     def draw_selection(self, selection):
         qd = QRDraw(selection['invoice'])
-        line1 = selection['first_line']
-        line2 = selection['second_line']
-        price = "%.03f satoshis" % selection['price']
+        title_lines = self.split_lines(selection['title'], 10)
+        artist_lines = self.split_lines(selection['artist'], 14)
+        price_lines = self.split_lines("%.03f satoshis" % selection['price'], 8)
         start_time = time.time()
-        #logging.info("drawing: %s - %s" % (line1, line2))
         self._clear_screen()
         self._set_pallet_gray()
         self._draw_qr(qd)
         self._set_pallet_black()
-        self._draw_label(line1, line2, price)
+        self._draw_label(title_lines, artist_lines, price_lines)
         self._refresh()
         #logging.info("reading after: %0.2f seconds" % (
         #             time.time() - start_time))

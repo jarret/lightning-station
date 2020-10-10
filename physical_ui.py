@@ -117,10 +117,10 @@ class PhysicalUI(object):
         self.leds_on()
         self.current_label = song['label']
         logging.info("kicking off draw")
-        selection = {'first_line':  song['title'],
-                     'second_line': song['artist'],
-                     'price':       song['price'],
-                     'invoice':     song['bolt11']}
+        selection = {'title':   song['title'],
+                     'artist':  song['artist'],
+                     'price':   song['price'],
+                     'invoice': song['bolt11']}
         self.blink = LoopingCall(self.leds_flip)
         self.blink.start(0.2, now=False)
 
