@@ -101,7 +101,7 @@ class InvoiceDisplay(object):
     def _draw_qr(self, qr_draw):
         start_time = time.time()
         read_count = 0
-        x_offset, y_offset, scale = qr_draw.place_inside_box(0, 200, 600)
+        x_offset, y_offset, scale = qr_draw.place_inside_box(0, 0, 600)
         for color, x1, y1, x2, y2 in qr_draw.iter_draw_params(x_offset,
                                                               y_offset,
                                                               scale):
@@ -121,12 +121,10 @@ class InvoiceDisplay(object):
 
     def _draw_label(self, line1, line2, price):
         start_time = time.time()
-        self._set_font_size_large()
-        self.paper.send(DisplayText(20, 20, line1.encode("gb2312")))
         self._set_font_size_small()
-        self.paper.send(DisplayText(20, 100, line2.encode("gb2312")))
-        self._set_font_size_medium()
-        self.paper.send(DisplayText(20, 140, price.encode("gb2312")))
+        self.paper.send(DisplayText(605, 40, line1.encode("gb2312")))
+        self.paper.send(DisplayText(605, 150, line2.encode("gb2312")))
+        self.paper.send(DisplayText(605, 560, price.encode("gb2312")))
         #logging.info("label: %0.2f seconds" % (time.time() - start_time))
 
     def _clear_screen(self):
@@ -157,7 +155,7 @@ class InvoiceDisplay(object):
         self._set_font_size_large()
         line1 = "Lightning struck!"
         line2 = "%.03f satoshis!" % price
-        self.paper.send(DisplayText(20, 350, line1.encode("gb2312")))
-        self.paper.send(DisplayText(20, 450, line2.encode("gb2312")))
+        self.paper.send(DisplayText(20, 150, line1.encode("gb2312")))
+        self.paper.send(DisplayText(20, 250, line2.encode("gb2312")))
         self._refresh()
         self.paper.read_responses()

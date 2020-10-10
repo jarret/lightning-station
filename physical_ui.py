@@ -27,9 +27,9 @@ import RPi.GPIO as GPIO
 #LED_4 = 21
 
 BUTTON_1 = 11
-BUTTON_2 = 15
+BUTTON_2 = 13
 
-LED_1 = 13
+LED_1 = 15
 
 
 
