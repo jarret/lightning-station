@@ -272,7 +272,8 @@ class Jukebox(object):
         return invoice['status'] == 'paid'
 
     def _iter_renews(daemon, thread_data, paid, expired):
-        for label, title, artist, price in thread_data:
+        check = [c for c in thread_data if c is not None]
+        for label, title, artist, price in check:
             if (label in paid) or (label in expired):
                 old_label = label
                 bolt11, expires, new_label = Jukebox._invoice(daemon, price,
@@ -360,7 +361,6 @@ class Jukebox(object):
     def _check_paid_defer(self):
         thread_data = [self._thread_data(s) for s in
                        self.music_select.iter_songs() if s is not None]
-        thread_data = [td for td in thread_data if td is not None]
         d = threads.deferToThread(Jukebox._check_paid_thread_func,
                                   self.daemon_rpc, thread_data)
         d.addCallback(self._check_paid_callback)
