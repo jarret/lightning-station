@@ -7,8 +7,8 @@ import requests
 from requests import post
 
 class Bitcoind():
-    def __init__(self, host='localhost', port=8332, user='rpc',
-                 password='bitcoinrpc'):
+    def __init__(self, host='localhost', port=8332, user='bitcoinrpc',
+                 password='rpc'):
         self.url = ('http://' + user + ':' + password + '@' + host + ':' +
                     str(port))
         self.headers = {'content-type': 'application/json'}
@@ -60,8 +60,8 @@ class StaticBitcoind():
     URL = None
     HEADERS = {'content-type': 'application/json'}
 
-    def gen_url(host='localhost', port=8332, user='rpc',
-                password='bitcoinrpc'):
+    def gen_url(host='localhost', port=8332, user='bitcoinrpc',
+                password='rpc'):
         return ('http://' + user + ':' + password + '@' + host + ':' +
                 str(port))
 

@@ -124,7 +124,17 @@ class BlockStats():
                self.get_output_type(o) == 'witness_v0_keyhash']
         spo = [o for o in outputs if
                self.get_output_type(o) == 'witness_v0_scripthash']
-        rpo = [o for o in outputs if self.get_output_type(o)]
+        rpo = [o for o in outputs if self.get_output_type(o) == "nulldata"]
+        ppo = [o for o in outputs if self.get_output_type(o) == "pubkey"]
+        mpo = [o for o in outputs if self.get_output_type(o) == "multisig"]
+        known_types = {'pubkeyhash', 'scripthash', 'witness_v0_keyhash',
+                       'witness_v0_scripthash', 'nulldata', 'pubkey', 'multisig'}
+        upo = [o for o in outputs if self.get_output_type(o) not in known_types]
+        for o in outputs:
+            t = self.get_output_type(o)
+            if t in known_types:
+                continue
+            print(o)
 
         inputs = []
         for tx in info['tx']:
@@ -135,10 +145,14 @@ class BlockStats():
 
         utxo_delta = len(outputs) - len(inputs)
 
+        ppi = [i for i in inputs if
+               self.get_input_type(i) == 'pubkey']
         opi = [i for i in inputs if
                self.get_input_type(i) == 'pubkeyhash']
         tpi = [i for i in inputs if
                self.get_input_type(i) == 'scripthash']
+        mpi = [i for i in inputs if
+               self.get_input_type(i) == 'multisig']
         bpi = [i for i in inputs if
                self.get_input_type(i) == 'witness_v0_keyhash']
         spi = [i for i in inputs if
@@ -167,16 +181,21 @@ class BlockStats():
         yield "new coins BTC:                %0.8f" % new_coins
         yield "miner fees BTC:               %0.8f" % fees_collected
         yield "---"
+        yield "n pubkey inputs:              %d" % len(ppi)
         yield "n 1-prefixed inputs:          %d" % len(opi)
         yield "n 3-prefixed inputs:          %d" % len(tpi)
+        yield "n multisig inputs:            %d" % len(mpi)
         yield "n key bc1-prefixed inputs:    %d" % len(bpi)
         yield "n script bc1-prefixed inputs: %d" % len(spi)
         yield "---"
+        yield "n pubkey outputs:              %d" % len(ppo)
         yield "n 1-prefixed outputs:          %d" % len(opo)
         yield "n 3-prefixed outputs:          %d" % len(tpo)
+        yield "n multisig outputs:            %d" % len(mpo)
         yield "n key bc1-prefixed outputs:    %d" % len(bpo)
         yield "n script bc1-prefixed outputs: %d" % len(spo)
         yield "n OP_RETURN outputs:           %d" % len(rpo)
+        yield "n unknown outputs:             %d" % len(upo)
         yield "---"
         yield "tx size -      %s" % self.crunch_str(sizes)
         yield "tx vsize -     %s" % self.crunch_str(vsizes)
