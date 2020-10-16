@@ -360,6 +360,7 @@ class Jukebox(object):
     def _check_paid_defer(self):
         thread_data = [self._thread_data(s) for s in
                        self.music_select.iter_songs() if s is not None]
+        thread_data = [td for td in thread_data if td is not None]
         d = threads.deferToThread(Jukebox._check_paid_thread_func,
                                   self.daemon_rpc, thread_data)
         d.addCallback(self._check_paid_callback)
