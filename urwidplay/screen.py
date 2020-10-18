@@ -15,6 +15,8 @@ from palette import ORANGE_THEME, BLUE_THEME, GREEN_THEME, RED_THEME
 from palette import PURPLE_THEME, YELLOW_THEME, GREY_THEME, BOLT_THEME
 from palette import SPARK_THEME, COKE_THEME, SPEARMINT_THEME
 
+from fixed_draw import FreeDrawFont
+
 
 BTC_SYMBOL = "₿"
 
@@ -78,17 +80,41 @@ class Screen():
         #        width='clip')
         #]))
 
-        bitcoin = urwid.BigText(('orange', " Bitcoin "),
+        symb = urwid.BigText(('orange', "B"),FreeDrawFont())
+        symb = urwid.Padding(symb, align='left', width='clip')
+        symb = urwid.SimpleFocusListWalker([symb])
+        symb = urwid.ListBox(symb)
+        symb = urwid.BoxAdapter(symb, 15)
+        #symb = urwid.LineBox(symb)
+        #symb = urwid.AttrWrap(symb, "orange")
+        symb = urwid.Filler(symb, valign="top")
+        symb = urwid.AttrWrap(symb, "orange")
+        #symb = urwid.Padding(symb, width=('relative', 20))
+
+        bitcoin = urwid.BigText(('orange', "ITCOIN! "),
                                 urwid.font.HalfBlock7x7Font())
-        bitcoin = urwid.Padding(bitcoin, align='center', width='clip')
+        bitcoin = urwid.Padding(bitcoin, align='left', width='clip')
         bitcoin = urwid.SimpleFocusListWalker([bitcoin])
         bitcoin = urwid.ListBox(bitcoin)
         bitcoin = urwid.BoxAdapter(bitcoin, 7)
-        bitcoin = urwid.LineBox(bitcoin)
+        #bitcoin = urwid.LineBox(bitcoin)
+        bitcoin = urwid.Filler(bitcoin, valign="bottom")
         bitcoin = urwid.AttrWrap(bitcoin, "orange")
-        bitcoin = urwid.Filler(bitcoin, valign="top")
 
-        pricestr = " $ %.2f " % self.info['price_btccad']
+        totalstr = " %.8f total BTC " % self.info['total_supply']
+        total = urwid.BigText(('orange', totalstr),
+                                urwid.font.HalfBlock5x4Font())
+        total = urwid.Padding(total, align='center', width='clip')
+        total = urwid.SimpleFocusListWalker([total])
+        total = urwid.ListBox(total)
+        total = urwid.BoxAdapter(total, 7)
+        total = urwid.LineBox(total)
+        total = urwid.AttrWrap(total, "orange")
+        total = urwid.Filler(total, valign="top")
+
+
+
+        pricestr = " $ %.2f CAD per BTC" % self.info['price_btccad']
         price = urwid.BigText(('purple', pricestr),
                                 urwid.font.HalfBlock5x4Font())
         #price = urwid.Filler(price, valign="middle")
@@ -99,6 +125,19 @@ class Screen():
         price = urwid.LineBox(price)
         price = urwid.AttrWrap(price, "purple")
         price = urwid.Filler(price, valign="top")
+
+        capstr = "Mkt Cap: $ %.2f " % (self.info['price_btccad'] *
+                                          self.info['total_supply'])
+        cap = urwid.BigText(('purple', capstr),
+                             urwid.font.HalfBlock5x4Font())
+        #price = urwid.Filler(price, valign="middle")
+        cap = urwid.Padding(cap, align='center', width='clip')
+        cap = urwid.SimpleFocusListWalker([cap])
+        cap = urwid.ListBox(cap)
+        cap = urwid.BoxAdapter(cap, 4)
+        cap = urwid.LineBox(cap)
+        cap = urwid.AttrWrap(cap, "purple")
+        cap = urwid.Filler(cap, valign="top")
 
         timestr = datetime.datetime.now().strftime(" %d/%m/%y %H:%M:%S ")
         tm = urwid.BigText(('purple', timestr),
@@ -111,10 +150,13 @@ class Screen():
         tm = urwid.AttrWrap(tm, "purple")
         tm = urwid.Filler(tm, valign="bottom")
 
-        pricetime_pile = urwid.Pile([price, tm])
+        pricetime_pile = urwid.Pile([price, cap, tm])
 
+        bitcoin_pile = urwid.Pile([bitcoin, total])
+
+        symb_pile = urwid.Pile([symb])
         #row1 = bt
-        row1 = urwid.Columns([bitcoin, pricetime_pile])
+        row1 = urwid.Columns([(18, symb_pile), bitcoin_pile, pricetime_pile])
         #row1 = urwid.Columns([bitcoin_text])
         row1 = urwid.AttrMap(row1, "green")
 
