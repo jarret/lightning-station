@@ -127,17 +127,19 @@ class Widget():
 
     @staticmethod
     def total_supply(total_supply):
-        totalstr = "{:,} ".format(total_supply)
+        totalstr = "{:,}".format(total_supply)
         markup = [("orange_minor_text", " ~ "),
                   ("major_text", totalstr),
-                  ("orange_minor_text", " total BTC ")]
+                  ("grey_minor_text", " total"),
+                  ("orange_minor_text", " BTC ")]
         w = Widget.big_5x6(markup, "center")
         return w
 
     @staticmethod
     def mkt_cap(mkt_cap):
-        mkt_cap_str = "{:,} ".format(round(mkt_cap, 2))
-        markup = [("dark_red_minor_text", " Mkt Cap: $ "),
+        mkt_cap_str = "{:,} ".format(int(mkt_cap))
+        markup = [("grey_minor_text", " Mkt Cap:"),
+                  ("dark_red_minor_text", " $ "),
                   ("major_text", mkt_cap_str),
                   ("dark_red_minor_text", " CAD ")]
         w = Widget.big_5x6(markup, "center")
@@ -150,7 +152,19 @@ class Widget():
                   ("major_text", pricestr),
                   ("dark_red_minor_text", " CAD "),
                   ("grey_minor_text", "per"),
-                  ("orange_minor_text", " BTC")]
+                  ("orange_minor_text", " BTC ")]
+        w = Widget.big_5x6(markup, "center")
+        return w
+
+    @staticmethod
+    def inv_price(price):
+        inv_price = round(1.0 / price, 8)
+        pricestr = " %0.8f" % inv_price
+        markup = [("orange_minor_text", " ~ "),
+                  ("major_text", pricestr),
+                  ("orange_minor_text", " BTC "),
+                  ("grey_minor_text", "per"),
+                  ("dark_red_minor_text", " CAD ")]
         w = Widget.big_5x6(markup, "center")
         return w
 

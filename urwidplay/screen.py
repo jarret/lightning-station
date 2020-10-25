@@ -154,11 +154,12 @@ class Screen():
         title = urwid.Pile([(19, bitcoin), (6, total_supply)])
 
         price = Widget.price(self.info['price_btccad'])
+        inv_price = Widget.inv_price(self.info['price_btccad'])
         mkt_cap_str = self.info['price_btccad'] * self.info['total_supply']
         mkt_cap = Widget.mkt_cap(mkt_cap_str)
-        dt = Widget.date_and_time(time.time())
+        #dt = Widget.date_and_time(time.time())
 
-        c3 = urwid.Pile([(6, price), (6, mkt_cap), (6, dt)])
+        c3 = urwid.Pile([(6, price), (6, inv_price), (6, mkt_cap)])
         c3 = urwid.Filler(c3)
         #c3 = urwid.LineBox(c3)
 
