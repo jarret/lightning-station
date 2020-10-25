@@ -12,6 +12,16 @@ DEFAULT_INFO = {
     'time':             time.time(),
     'price_btccad':     17464.25,
     'total_supply':     18525896.48986026,
+    'cpu_pcts':         [10, 20, 30, 40],
+    'mem_total':        1024 * 1024 * 1024,
+    'mem_used':         1024 * 1024 * 512,
+    'mem_used_pct':     50,
+    'block_height':     654444,
+    'block_arrival_timestamp': 1603658136,
+    'block_timestamp':         1603658133,
+    'block_n_txes':     1234,
+    'block_size':       1024 * 1024,
+    'block_weight':     3 * 1024 * 1024,
 }
 
 class Info(dict):

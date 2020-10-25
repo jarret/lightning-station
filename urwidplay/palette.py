@@ -93,6 +93,9 @@ PALETTE = [
            ('progress_spearmint_n', '', '', '', LIGHT_GREEN, DARK_GREY),
            ('progress_spearmint_c',  '', '', '', DARK_GREY, LIGHT_GREEN),
            ('spearmint_minor_text', '', '', '', LIGHT_GREEN, BLACK),
+
+           ('spearmint_back', '', '', '', BLACK, LIGHT_GREEN),
+           ('coke_back', '', '', '', BLACK, LIGHT_RED),
           ]
 
 
