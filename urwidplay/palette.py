@@ -38,6 +38,7 @@ PALETTE = [
 
 
            ('orange', '', '', '', BLACK, DARK_ORANGE),
+           ('light_orange', '', '', '', BLACK, LIGHT_ORANGE),
            ('progress_orange_n', '', '', '', GREY, LIGHT_ORANGE),
            ('progress_orange_c',  '', '', '', LIGHT_ORANGE, GREY),
            ('orange_minor_text', '', '', '', LIGHT_ORANGE, BLACK),

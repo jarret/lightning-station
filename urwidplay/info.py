@@ -11,7 +11,7 @@ DEFAULT_INFO = {
     'tip_block_hash':   "",
     'time':             time.time(),
     'price_btccad':     12345.00,
-    'total_supply':     18520229.72786026,
+    'total_supply':     18525896.48986026,
 }
 
 class Info(dict):

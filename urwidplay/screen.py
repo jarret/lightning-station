@@ -17,6 +17,8 @@ from palette import SPARK_THEME, COKE_THEME, SPEARMINT_THEME
 
 from fixed_draw import FreeDrawFont
 
+from widget import Widget
+
 
 BTC_SYMBOL = "₿"
 
@@ -53,43 +55,14 @@ class Screen():
     def _dummy_box(self, title, theme):
         return self._wrap_box(urwid.Pile([]), title, theme)
 
-    def assemble_widgets(self):
-        #bitcoin_font = urwid.font.HalfBlock5x4Font
-        #bitcoin = urwid.BigText("Bitcoin", bitcoin_font)
-        #bitcoin = urwid.AttrWrap(bitcoin, 'purple')
-        #bitcoin = urwid.Filler(bitcoin, "middle", ('relative', 50))
-        #bitcoin = urwid.Padding(bitcoin, ('relative', 50))
-        #bitcoin = urwid.BoxAdapter(bitcoin, 7)
-
-        #bigtext = urwid.BigText("Bitcoin", bitcoin_font)
-        #bt = SwitchingPadding(bigtext, 'left', None)
-        #bt = urwid.AttrWrap(bt, 'bigtext')
-        #bt = urwid.Filler(bt, 'bottom', None, 7)
-        #bt = urwid.BoxAdapter(bt, 7)
-
-
-      # a = (ORANGE_THEME['major_text'], " asdfads ")
-       #i = (ORANGE_THEME['minor_text'], " since %s ")
-        #bitcoin_text = urwid.BoxAdapter(urwid.Pile([urwid.Text("hello")]), 7)
-
-
-
-        #bitcoin = urwid.ListBox(urwid.SimpleFocusListWalker([
-        #    urwid.Padding(
-        #        urwid.BigText(('purple', "Bitcoin"), urwid.HalfBlock5x4Font()),
-        #        width='clip')
-        #]))
-
+    def assemble_widgets2(self):
         symb = urwid.BigText(('orange', "B"),FreeDrawFont())
         symb = urwid.Padding(symb, align='left', width='clip')
         symb = urwid.SimpleFocusListWalker([symb])
         symb = urwid.ListBox(symb)
         symb = urwid.BoxAdapter(symb, 15)
-        #symb = urwid.LineBox(symb)
-        #symb = urwid.AttrWrap(symb, "orange")
         symb = urwid.Filler(symb, valign="top")
         symb = urwid.AttrWrap(symb, "orange")
-        #symb = urwid.Padding(symb, width=('relative', 20))
 
         bitcoin = urwid.BigText(('orange', "ITCOIN! "),
                                 urwid.font.HalfBlock7x7Font())
@@ -168,6 +141,23 @@ class Screen():
 
         w = urwid.Pile([row1, row2, row3])
         #w = urwid.Pile([])
+        return w
+
+    def assemble_widgets(self):
+        btc_symb = Widget.btc_symb()
+        itcoin = Widget.itcoin()
+        total_supply = Widget.total_supply(self.info['total_supply'])
+
+        row1 = urwid.Columns([(18, btc_symb), (40, itcoin), total_supply])
+        row1 = urwid.AttrMap(row1, "orange")
+
+        row2 = urwid.Columns([])
+        row2 = urwid.AttrMap(row2, "blue")
+
+        row3 = urwid.Columns([])
+        row3 = urwid.AttrMap(row3, "purple")
+
+        w = urwid.Pile([row1, row2, row3])
         return w
 
     def draw_screen(self):
