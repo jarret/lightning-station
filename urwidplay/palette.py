@@ -57,6 +57,7 @@ PALETTE = [
            ('progress_red_n', '', '', '', GREY, LIGHT_RED),
            ('progress_red_c',  '', '', '', LIGHT_RED, GREY),
            ('red_minor_text', '', '', '', LIGHT_RED, BLACK),
+           ('dark_red_minor_text', '', '', '', DARK_RED, BLACK),
 
            ('purple', '', '', '', WHITE, DARK_PURPLE),
            ('progress_purple_n', '', '', '', GREY, LIGHT_PURPLE),

@@ -2,6 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file LICENSE or http://www.opensource.org/licenses/mit-license.php
 
+import time
 import urwid
 import logging
 import traceback
@@ -146,9 +147,22 @@ class Screen():
     def assemble_widgets(self):
         btc_symb = Widget.btc_symb()
         itcoin = Widget.itcoin()
-        total_supply = Widget.total_supply(self.info['total_supply'])
+        subtitle = Widget.subtitle()
+        bitcoin = urwid.Columns([(18, btc_symb), (40, itcoin), (100, subtitle)])
 
-        row1 = urwid.Columns([(18, btc_symb), (40, itcoin), total_supply])
+        total_supply = Widget.total_supply(self.info['total_supply'])
+        title = urwid.Pile([(19, bitcoin), (6, total_supply)])
+
+        price = Widget.price(self.info['price_btccad'])
+        mkt_cap_str = self.info['price_btccad'] * self.info['total_supply']
+        mkt_cap = Widget.mkt_cap(mkt_cap_str)
+        dt = Widget.date_and_time(time.time())
+
+        c3 = urwid.Pile([(6, price), (6, mkt_cap), (6, dt)])
+        c3 = urwid.Filler(c3)
+        #c3 = urwid.LineBox(c3)
+
+        row1 = urwid.Columns([(160, title), c3])
         row1 = urwid.AttrMap(row1, "orange")
 
         row2 = urwid.Columns([])

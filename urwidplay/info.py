@@ -10,7 +10,7 @@ DEFAULT_INFO = {
     'tip_block_weight': 0,
     'tip_block_hash':   "",
     'time':             time.time(),
-    'price_btccad':     12345.00,
+    'price_btccad':     17464.25,
     'total_supply':     18525896.48986026,
 }
 
