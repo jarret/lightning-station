@@ -13,6 +13,7 @@ PHRASES = [
 "I'm having a hard time holding these alligators down.",
 "Don't buy Bitcoin. It's going to crash.",
 "No one uses Bitcoin anymore, the blocks are full.",
+"Eat My Shorts",
 "Everyone knows that Vitalik Buterin is the smartest person.",
 "Don't buy Bitcoin. It has no intrinsic value.",
 "Don't buy Bitcoin. It is in a death spiral.",
