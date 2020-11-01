@@ -21,7 +21,13 @@ BSTAT_TAGS = ['blockchain_tip_hash',
               'network_connections',
               'fee_estimates',
               'fee_estimates_eco',
-              'last_block_arrive_time',]
+              'last_block_arrive_time',
+              'tip_ntx',
+              'tip_block_time',
+              'tip_inputs',
+              'tip_outputs',
+              'tip_block_weight',
+              'tip_block_size']
 
 class Subscribe():
     def __init__(self, config, info):

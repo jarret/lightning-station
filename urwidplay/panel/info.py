@@ -8,9 +8,6 @@ import json
 import logging
 
 DEFAULT_INFO = {
-    'tip_block_height': 0,
-    'tip_block_size':   0,
-    'tip_block_weight': 0,
     'time':             time.time(),
     'price_btccad':     18000.0,
     'price_cadbtc':     1.0 / 18000.0,
@@ -50,6 +47,12 @@ DEFAULT_INFO = {
                           250: 5,
                           500: 4},
     'last_block_arrive_time': 1603658136,
+    'tip_ntx': 100,
+    'tip_block_time': 1603658133,
+    'tip_inputs': 100,
+    'tip_outputs': 100,
+    'tip_block_weight': 100,
+    'tip_block_size': 100,
 }
 
 class Info(dict):

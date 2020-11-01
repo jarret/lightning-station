@@ -55,7 +55,7 @@ class Bstatd(Service):
         self.block_listener = BlockListener(config, self.new_block_cb)
 
     def publish(self, tag, message):
-        print("publishing %s %s" % (tag, message))
+        logging.info("publishing %s %s" % (tag, message))
         self.pub_connection.publish(message, tag=tag)
 
     ###########################################################################
@@ -111,16 +111,51 @@ class Bstatd(Service):
 
     ###########################################################################
 
+    @staticmethod
+    def get_tip_blockstats():
+        chain_info = Bitcoind.getblockchaininfo(block)
+        if not chain_info:
+            return None
+        blockheight = chain_info['blocks']
+        blockhash = chain_info['bestblockhash']
+        block_info = Bitcoind.getblock(blockhash)
+        if not block_info:
+            return None
+        block_stats = Bitcoind.getblockstats(height)
+        if not block_stats:
+            return None
+        return block_stats
+
+    def get_tip_blockstats_callback(self, block_stats):
+        if block_stats:
+            ms = [('tip_ntx',          block_stats['ntx']),
+                  ('tip_block_time',   block_stats['time']),
+                  ('tip_inputs',       block_stats['ins']),
+                  ('tip_outputs',      block_stats['outs']),
+                  ('tip_block_weight', block_stats['total_weight']),
+                  ('tip_block_size',   block_stats['total_size']),
+                 ]
+            for tag, value in ms:
+                message = json.dumps({tag: value}).encode("utf8")
+                tag = tag.encode("utf8")
+                self.publish(tag, message)
+
+    def start_tip_blockstats(self):
+        d = threads.deferToThread(Bstatd.get_tip_blockstats)
+        d.addCallback(self.get_tip_blockstats_callback)
+
+    ###########################################################################
+
 
     @staticmethod
-    def _get_fee_rate(block):
+    def get_fee_rate(block):
         info = Bitcoind.estimatesmartfee(block)
         if not info:
             return None
         return info['feerate'] * 100000.0
 
     @staticmethod
-    def _get_fee_rate_eco(block):
+    def get_fee_rate_eco(block):
         info = Bitcoind.estimatesmartfee_eco(block)
         if not info:
             return None
@@ -128,9 +163,9 @@ class Bstatd(Service):
 
     @staticmethod
     def estimate_fees():
-        fee_estimate = {b: Bstatd._get_fee_rate(b) for b in
+        fee_estimate = {b: Bstatd.get_fee_rate(b) for b in
                         FEE_RATE_BLOCKS}
-        fee_estimate_eco = {b: Bstatd._get_fee_rate_eco(b) for b in
+        fee_estimate_eco = {b: Bstatd.get_fee_rate_eco(b) for b in
                             FEE_RATE_BLOCKS}
         return [('fee_estimates',     fee_estimate),
                 ('fee_estimates_eco', fee_estimate_eco)]
@@ -152,21 +187,21 @@ class Bstatd(Service):
     def publish_arrive_time(self):
         info = {"last_block_arrive_time": time.time()}
         message = json.dumps(info).encode("utf8")
-        tag = tag.encode("utf8")
+        tag = 'last_block_arrive_time'.encode("utf8")
         self.publish(tag, message)
 
     ###########################################################################
-
-
-    def start(self):
-        reactor.callLater(0.1, self.start_mempoolinfo)
-        reactor.callLater(0.1, self.start_networkinfo)
-        reactor.callLater(0.1, self.start_estimatefees)
 
     def new_block_cb(self, block_hash):
         logging.info("block hash: %s" % block_hash)
         self.start_blockchaininfo()
         self.publish_arrive_time()
+        self.start_tip_blockstats()
+
+    def start(self):
+        reactor.callLater(0.1, self.start_mempoolinfo)
+        reactor.callLater(0.1, self.start_networkinfo)
+        reactor.callLater(0.1, self.start_estimatefees)
 
     def stop(self):
         pass

@@ -46,6 +46,10 @@ class Bitcoind():
         return Bitcoind.call('getblock', block_hash)
 
     @staticmethod
+    def getblockstats(height):
+        return Bitcoind.call('getblockstats', height)
+
+    @staticmethod
     def getblock_raw(block_hash):
         return Bitcoind.call('getblock', block_hash, 0)
 
