@@ -3,7 +3,11 @@
 # Distributed under the MIT software license, see the accompanying
 # file LICENSE or http://www.opensource.org/licenses/mit-license.php
 
+import os
+import sys
 import json
+
+from configparser import ConfigParser
 
 from twisted.application.service import Service
 from twisted.internet import reactor
@@ -15,19 +19,18 @@ from txzmq import ZmqEndpoint, ZmqEndpointType
 from txzmq import ZmqFactory
 from txzmq import ZmqSubConnection, ZmqPubConnection
 
-
-import krakenex
-
-class Kraken():
-    def fetch_btccad():
-        k = krakenex.API()
-        ticker = k.query_public('Ticker', {'pair': 'XXBTZCAD'})
-        last_close_raw = ticker["result"]["XXBTZCAD"]["c"]
-        last_close = last_close_raw[0]
-        return last_close
+from kraken_price import KrakenPrice
 
 
-PUBLISH_ENDPOINT = "tcp://127.0.0.1:7788"
+CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".jukebox")
+CONFIG_FILE = os.path.join(CONFIG_DIR, "jukebox.conf")
+if not os.path.exists(CONFIG_FILE):
+    sys.exit("*** could not find %s" % CONFIG_FILE)
+config = ConfigParser()
+config.read(CONFIG_FILE)
+
+FETCH_DELAY = int(config['Priced']['FetchDelay'])
+PUBLISH_ENDPOINT = config['Priced']['ZmqPubEndpoint']
 
 class Priced(Service):
     def __init__(self):
@@ -35,22 +38,29 @@ class Priced(Service):
         pub_endpoint = ZmqEndpoint(ZmqEndpointType.bind, PUBLISH_ENDPOINT)
         self.pub_connection = ZmqPubConnection(factory, pub_endpoint)
 
-    def publish_price(self, tag, price_info):
-        msg = json.dumps(price_info).encode("utf8")
-        self.pub_connection.publish(msg, tag=tag)
+    def publish_price(self, tag, message):
+        print("publishing %s %s" % (tag, message))
+        self.pub_connection.publish(message, tag=tag)
 
+    ###########################################################################
 
     def fetch_btccad_callback(self, btccad):
-        print("price: %0.2f" % float(btccad))
-        reactor.callLater(10.0, self.start_fetch_thread)
+        if btccad:
+            print("BTCCAD: %0.2f" % float(btccad))
+            message = {'price_btccad': float(btccad)}
+            message = json.dumps(message).encode("utf8")
+            tag = "price_btccad".encode("utf8")
+            self.publish_price(tag, message)
+            reactor.callLater(FETCH_DELAY, self.start_btccad)
 
-    def start_fetch_thread(self):
-        d = threads.deferToThread(Kraken.fetch_btccad)
+    def start_btccad(self):
+        d = threads.deferToThread(KrakenPrice.fetch_btccad)
         d.addCallback(self.fetch_btccad_callback)
 
+    ###########################################################################
 
     def start(self):
-        reactor.callLater(0.1, self.start_fetch_thread)
+        reactor.callLater(0.1, self.start_btccad)
 
     def stop(self):
         pass

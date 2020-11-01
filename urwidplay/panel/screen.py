@@ -60,9 +60,9 @@ class Screen():
                             ('weight', 10, total_supply)])
 
         price = Widget.price(self.info['price_btccad'])
-        inv_price = Widget.inv_price(self.info['price_btccad'])
-        mkt_cap_str = self.info['price_btccad'] * self.info['total_supply']
-        mkt_cap = Widget.mkt_cap(mkt_cap_str)
+        inv_price = Widget.inv_price(self.info['price_cadbtc'])
+        mkt_cap_str = self.info['mkt_cap_cad']
+        mkt_cap = Widget.mkt_cap(self.info['mkt_cap_cad'])
         #dt = Widget.date_and_time(time.time())
 
         c3 = urwid.Pile([(6, price), (6, inv_price), (6, mkt_cap)])

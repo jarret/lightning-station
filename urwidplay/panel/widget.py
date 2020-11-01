@@ -149,7 +149,7 @@ class Widget():
 
     @staticmethod
     def price(price):
-        pricestr = "{:,} ".format(round(price, 2))
+        pricestr = "{:,.2f} ".format(round(price, 2))
         markup = [("dark_red_minor_text", " $ "),
                   ("major_text", pricestr),
                   ("dark_red_minor_text", " CAD "),
@@ -160,8 +160,8 @@ class Widget():
 
     @staticmethod
     def inv_price(price):
-        inv_price = round(1.0 / price, 8)
-        pricestr = " %0.8f" % inv_price
+        price = round(price, 8)
+        pricestr = " %0.8f" % price
         markup = [("orange_minor_text", " ~ "),
                   ("major_text", pricestr),
                   ("orange_minor_text", " BTC "),
