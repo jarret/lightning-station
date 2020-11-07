@@ -99,7 +99,7 @@ class Info(dict):
         return info
 
     def persist(self):
-        self.write_json(self.filename, self.db)
+        self.write_json(self.filename, self)
 
     def depersist(self):
         os.remove(self.filename)
@@ -109,6 +109,7 @@ class Info(dict):
     def update_info(self, key, info):
         self[key] = info
         self.recalculate()
+        self.persist()
 
     def recalculate(self):
         self['time'] = time.time()

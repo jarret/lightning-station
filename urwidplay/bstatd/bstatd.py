@@ -113,7 +113,7 @@ class Bstatd(Service):
 
     @staticmethod
     def get_tip_blockstats():
-        chain_info = Bitcoind.getblockchaininfo(block)
+        chain_info = Bitcoind.getblockchaininfo()
         if not chain_info:
             return None
         blockheight = chain_info['blocks']
@@ -121,14 +121,14 @@ class Bstatd(Service):
         block_info = Bitcoind.getblock(blockhash)
         if not block_info:
             return None
-        block_stats = Bitcoind.getblockstats(height)
+        block_stats = Bitcoind.getblockstats(blockheight)
         if not block_stats:
             return None
         return block_stats
 
     def get_tip_blockstats_callback(self, block_stats):
         if block_stats:
-            ms = [('tip_ntx',          block_stats['ntx']),
+            ms = [('tip_ntx',          block_stats['txs']),
                   ('tip_block_time',   block_stats['time']),
                   ('tip_inputs',       block_stats['ins']),
                   ('tip_outputs',      block_stats['outs']),

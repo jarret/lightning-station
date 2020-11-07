@@ -78,24 +78,30 @@ class Screen():
         #cpu = urwid.Filler(cpu)
         ram = Widget.ram_box(self.info['mem_total'], self.info['mem_used'],
                              self.info['mem_used_pct'], BLUE_THEME)
+        mem = Widget.mempool_box(self.info['mempool_txes'],
+                                 self.info['mempool_bytes'],
+                                 self.info['mempool_mem_max'],
+                                 self.info['mempool_mem_used'], PURPLE_THEME)
+        fee = Widget.estimates_box(self.info['fee_estimates'],
+                                   self.info['fee_estimates_eco'], PURPLE_THEME)
         #ram = urwid.Filler(ram)
 
-        syslist = urwid.ListBox([cpu, ram])
+        syslist = urwid.ListBox([cpu, ram, mem, fee])
         #boxpile = urwid.Filler(boxpile)
-        row = urwid.Columns([(30, syslist)])
+        row = urwid.Columns([(40, syslist)])
         row = urwid.AttrMap(row, "spearmint_back")
         return row
 
     def _assemble_bottom_row(self):
 
-        i = Widget.block_id_box(self.info['block_height'],
-                                self.info['block_arrival_timestamp'],
-                                self.info['block_timestamp'], GREEN_THEME)
+        i = Widget.block_id_box(self.info['blockchain_height'],
+                                self.info['last_block_arrive_time'],
+                                self.info['tip_block_time'], GREEN_THEME)
 
-        s = Widget.block_stat_box(self.info['block_n_txes'],
-                                  self.info['block_size'],
-                                  self.info['block_weight'],
-                                  self.info['block_arrival_timestamp'],
+        s = Widget.block_stat_box(self.info['tip_ntx'],
+                                  self.info['tip_block_size'],
+                                  self.info['tip_block_weight'],
+                                  self.info['last_block_arrive_time'],
                                   GREEN_THEME)
 
         blist = urwid.ListBox([i, s])

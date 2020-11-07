@@ -62,60 +62,6 @@ class Widget():
         bottom = Widget.subtitle_bottom()
         return urwid.Filler(urwid.Pile([(6, top), (6, bottom)]), top=2)
 
-    ###########################################################################
-
-#    def big_5x6(txt1):
-#        t, a, c = txt1
-#        w = urwid.BigText((c, t),
-#                          HalfBlock5x6Font())
-#        w = urwid.Padding(w, align=a, width='clip')
-#        w = urwid.ListBox([w])
-#        w = urwid.BoxAdapter(w, 6)
-#        w = urwid.Filler(w, valign='top', top=1)
-#        w = urwid.Padding(w)
-#        return w
-#
-#    def three_5x6(txt1, txt2, txt3):
-#        l = Widget.big_5x6(txt1)
-#        m = Widget.big_5x6(txt2)
-#        r = Widget.big_5x6(txt3)
-#        return [l, m, r]
-#
-#    ###########################################################################
-#
-#    @staticmethod
-#    def total_supply(total_supply):
-#        l = (" ~ ", 'right', 'orange_minor_text')
-#        totalstr = " {:,} ".format(total_supply)
-#        c = (totalstr, 'center', 'major_text')
-#        r = (" total BTC ", 'left', 'orange_minor_text')
-#        s1, s2, s3 = Widget.three_5x6(l, c, r)
-#        w = urwid.Columns([(15, s1), (90, s2), (40, s3)])
-#        #w = urwid.Padding(w, align='center')
-#        return w
-#
-#    @staticmethod
-#    def mkt_cap(mkt_cap):
-#        l = (" Cap:  $", 'right', 'dark_red_minor_text')
-#        totalstr = " {:,} ".format(mkt_cap)
-#        c = (totalstr, 'center', 'major_text')
-#        r = (" CAD ", 'left', 'dark_red_minor_text')
-#        s1, s2, s3 = Widget.three_5x6(l, c, r)
-#        w = urwid.Columns([(30, s1), (95, s2), (20, s3)])
-#        #w = urwid.Padding(w, align='center')
-#        return w
-#
-#    @staticmethod
-#    def price(price):
-#        l = ("  $ ", 'right', 'dark_red_minor_text')
-#        totalstr = " {:,} ".format(price)
-#        c = (totalstr, 'center', 'major_text')
-#        r = (" CAD per BTC ", 'left', 'dark_red_minor_text')
-#        s1, s2, s3 = Widget.three_5x6(l, c, r)
-#        w = urwid.Columns([(20, s1), (35, s2), (50, s3)])
-#        #w = urwid.Padding(w, align='center')
-#        return w
-
     def big_5x6(markup, align):
         w = urwid.BigText(markup, HalfBlock5x6Font())
         w = urwid.Padding(w, align=align, width='clip')
@@ -231,6 +177,25 @@ class Widget():
         return urwid.Text([a, i], align='center')
 
     ###########################################################################
+    def _center_major_text(string, theme):
+        return urwid.Text((theme['major_text'], " %s " % string),
+                          align='center')
+    def _center_minor_text(string, theme):
+        return urwid.Text((theme['minor_text'], " %s " % string),
+                           align='center')
+
+    @staticmethod
+    def _title_row(strs, theme):
+        return Widget._center_minor_text(" ".join(strs), theme)
+
+    @staticmethod
+    def _row(strs, theme):
+        t = (theme['minor_text'], " " + strs[0] + " ")
+        m = (theme['major_text'], " ".join(strs[1:]) + " ")
+        return urwid.Text([t, m], align='center')
+
+
+    ###########################################################################
 
     @staticmethod
     def cpu_box(cpu_pcts, theme):
@@ -256,6 +221,57 @@ class Widget():
         lines = [r, u, up]
         return Widget._line_pile_box(lines, "RAM", theme)
 
+
+    @staticmethod
+    def mempool_box(mempool_txes, mempool_bytes, mempool_max_used,
+                    mempool_mem_used, theme):
+        if mempool_txes is None:
+            return Widget._dummy_box("(no block data)", theme)
+
+        h = Widget._stat_line("Mempool Txes", "{:,}".format(mempool_txes),
+                              None, theme)
+        at = Widget._stat_line("Tx Bytes", "{:,}".format(mempool_bytes),
+                               None, theme)
+        m = Widget._stat_line("Max Mempool RAM",
+                              "{:,}".format(mempool_max_used), None, theme)
+        x = Widget._stat_line("RAM Used", "{:,}".format(mempool_mem_used),
+                              None, theme)
+        lines = [h, at, m, x]
+        return Widget._line_pile_box(lines, "Mempool", theme)
+
+    @staticmethod
+    def estimates_box(fee_estimates, fee_estimates_eco, theme):
+        blocks = sorted(fee_estimates.keys(), key=lambda x: int(x))
+
+        b_row = ["Blks"]
+        b_row += [str(b) for b in blocks]
+
+        c_row = ["Norm"]
+        c_row += [str(int(round(fee_estimates[b]))) for b in
+                  blocks]
+
+        e_row = ["Econ"]
+        e_row += [str(int(round(fee_estimates_eco[b]))) for b in
+                  blocks]
+
+        b_strs = []
+        c_strs = []
+        e_strs = []
+        for i in range(len(blocks) + 1):
+            b = b_row[i]
+            c = c_row[i]
+            e = e_row[i]
+            width = max(len(b), len(c), len(e))
+            fmt = "%%%ds" % width
+            b_strs.append(fmt % b)
+            c_strs.append(fmt % c)
+            e_strs.append(fmt % e)
+
+        b_str = Widget._title_row(b_strs, theme)
+        c_str = Widget._row(c_strs, theme)
+        e_str = Widget._row(e_strs, theme)
+        lines = [b_str, c_str, e_str]
+        return Widget._line_pile_box(lines, "Fee Estimates (sat/byte)", theme)
 
     @staticmethod
     def block_id_box(block_height, block_arrival_timestamp, block_timestamp,
