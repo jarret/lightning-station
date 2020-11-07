@@ -28,6 +28,11 @@ BSTAT_TAGS = ['blockchain_tip_hash',
               'tip_outputs',
               'tip_block_weight',
               'tip_block_size']
+CSTAT_TAGS = ['ip_addr',
+              'cpu_pct',
+              'mem_total',
+              'mem_used',
+              'mem_used_pct']
 
 class Subscribe():
     def __init__(self, config, info):
@@ -49,6 +54,13 @@ class Subscribe():
         connection = ZmqSubConnection(self.zmq_factory, bstat_endpoint)
         connection.gotMessage = self.update_info
         for tag in BSTAT_TAGS:
+            connection.subscribe(tag.encode("utf8"))
+
+        cstat_endpoint = config['Panel']['ZmqSubCstatEndpoint']
+        cstat_endpoint = ZmqEndpoint(ZmqEndpointType.connect, cstat_endpoint)
+        connection = ZmqSubConnection(self.zmq_factory, cstat_endpoint)
+        connection.gotMessage = self.update_info
+        for tag in CSTAT_TAGS:
             connection.subscribe(tag.encode("utf8"))
 
     def update_info(self, message, tag):

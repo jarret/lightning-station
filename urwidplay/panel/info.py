@@ -13,7 +13,7 @@ DEFAULT_INFO = {
     'price_cadbtc':     1.0 / 18000.0,
     'total_supply':     18525896.48986026,
     'mkt_cap_cad':      300000000000,
-    'cpu_pcts':         [10, 20, 30, 40],
+    'cpu_pct':          [10, 20, 30, 40],
     'mem_total':        1024 * 1024 * 1024,
     'mem_used':         1024 * 1024 * 512,
     'mem_used_pct':     50,
@@ -58,11 +58,8 @@ DEFAULT_INFO = {
 class Info(dict):
     def __init__(self, config):
         super().__init__()
-
         self.config = config
-
         self.filename = config['Panel']['PersistFile']
-
         logging.info("using: %s" % self.filename)
         self.make_exist(self.filename)
         persist_db = self.read_json(self.filename)

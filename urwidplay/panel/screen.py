@@ -74,7 +74,7 @@ class Screen():
         return row
 
     def _assemble_middle_row(self):
-        cpu = Widget.cpu_box(self.info['cpu_pcts'], BLUE_THEME)
+        cpu = Widget.cpu_box(self.info['cpu_pct'], BLUE_THEME)
         #cpu = urwid.Filler(cpu)
         ram = Widget.ram_box(self.info['mem_total'], self.info['mem_used'],
                              self.info['mem_used_pct'], BLUE_THEME)
