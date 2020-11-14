@@ -202,7 +202,7 @@ class Jukebox(object):
         self.purchased_cb = None
         self.renewed_cb = None
         self.music_select = MusicSelect(self.music_dir)
-        self.daemon_rpc = daemon_rpc
+        self.daemon_rpc = self.daemon_rpc
         self.jukebox_queue = JukeboxQueue()
         self.is_init = False
         self._init_invoices()

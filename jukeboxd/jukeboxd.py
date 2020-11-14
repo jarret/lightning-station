@@ -35,9 +35,11 @@ setup_logging(LOG_FILE, "jukeboxd", console_silent=True,
 if __name__ == '__main__':
     j = Jukebox(config)
     pui = PhysicalUI(config, j)
-    ap = AudioPlayer(config)
+    ap = AudioPlayer()
 
     try:
+        j.run()
+        pui.run()
         reactor.run()
     except Exception:
         tb = traceback.format_exc()
