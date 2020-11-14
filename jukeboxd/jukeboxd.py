@@ -8,6 +8,8 @@ import argparse
 import logging
 import traceback
 
+from configparser import ConfigParser
+
 from twisted.internet import reactor, task
 
 from physical_ui import PhysicalUI
@@ -18,23 +20,25 @@ from jukebox import Jukebox
 
 ###############################################################################
 
-DEFAULT_LOG_FILE = "/tmp/lightning-station.log"
+CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".jukebox")
+CONFIG_FILE = os.path.join(CONFIG_DIR, "jukebox.conf")
+if not os.path.exists(CONFIG_FILE):
+    sys.exit("*** could not find %s" % CONFIG_FILE)
+config = ConfigParser()
+config.read(CONFIG_FILE)
 
-DESCRIPTION = ("Lightning Station - monitors and doodads for a bitcoin full "
-               "node, lightning node and stuff that is fun and interesting.")
+LOG_FILE = os.path.join(CONFIG_DIR, "jukeboxd.log")
+setup_logging(LOG_FILE, "jukeboxd", console_silent=True,
+              min_level=logging.DEBUG)
+
 
 if __name__ == '__main__':
-    j = Jukebox(reactor, sui, args.audio_dir, args.lightning_rpc)
-    pui = PhysicalUI(r, sui, j)
-    ap = AudioPlayer(r, sui, j)
+    j = Jukebox(config)
+    pui = PhysicalUI(config, j)
+    ap = AudioPlayer(config)
 
     try:
-        if args.console:
-            r.run()
-        else:
-            # reactor is sarted from screen_ui
-            sui.start_event_loop()
+        reactor.run()
     except Exception:
-        sui.stop()
         tb = traceback.format_exc()
         logging.error(tb)
