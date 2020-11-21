@@ -45,14 +45,14 @@ class Priced(Service):
         self.pub_connection = ZmqPubConnection(factory, pub_endpoint)
 
     def publish_price(self, tag, message):
-        print("publishing %s %s" % (tag, message))
+        logging.info("publishing %s %s" % (tag, message))
         self.pub_connection.publish(message, tag=tag)
 
     ###########################################################################
 
     def fetch_btccad_callback(self, btccad):
         if btccad:
-            print("BTCCAD: %0.2f" % float(btccad))
+            #print("BTCCAD: %0.2f" % float(btccad))
             message = {'price_btccad': float(btccad)}
             message = json.dumps(message).encode("utf8")
             tag = "price_btccad".encode("utf8")
