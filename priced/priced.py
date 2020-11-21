@@ -6,6 +6,7 @@
 import os
 import sys
 import json
+import logging
 
 from configparser import ConfigParser
 
@@ -19,6 +20,7 @@ from txzmq import ZmqEndpoint, ZmqEndpointType
 from txzmq import ZmqFactory
 from txzmq import ZmqSubConnection, ZmqPubConnection
 
+from logger import setup_logging
 from kraken_price import KrakenPrice
 
 
@@ -31,6 +33,10 @@ config.read(CONFIG_FILE)
 
 FETCH_DELAY = int(config['Priced']['FetchDelay'])
 PUBLISH_ENDPOINT = config['Priced']['ZmqPubEndpoint']
+LOG_FILE = os.path.join(CONFIG_DIR, "priced.log")
+setup_logging(LOG_FILE, "priced", console_silent=True,
+              min_level=logging.DEBUG)
+
 
 class Priced(Service):
     def __init__(self):
