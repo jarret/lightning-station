@@ -272,7 +272,7 @@ class Jukebox(object):
         return invoice['status'] == 'paid'
 
     def _iter_renews(daemon, thread_data, paid, expired):
-        check = [c for c in thread_data if c is not None]
+        check = [c for c in thread_data if c[0] is not None]
         for label, title, artist, price in check:
             if (label in paid) or (label in expired):
                 old_label = label
@@ -354,7 +354,7 @@ class Jukebox(object):
 
     def _thread_data(self, song):
         if 'label' not in song:
-            return None
+            return (None, None, None, None)
         # the info needed to check and renew invoices
         return (song['label'], song['title'], song['artist'], song['price'])
 
