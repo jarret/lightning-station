@@ -11,6 +11,7 @@ import traceback
 from configparser import ConfigParser
 
 from twisted.internet import reactor, task
+from twisted.application.service import Service
 
 from physical_ui import PhysicalUI
 from logger import setup_logging
