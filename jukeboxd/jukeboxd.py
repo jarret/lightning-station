@@ -31,15 +31,37 @@ LOG_FILE = os.path.join(CONFIG_DIR, "jukeboxd.log")
 setup_logging(LOG_FILE, "jukeboxd", console_silent=True,
               min_level=logging.DEBUG)
 
+class Jukeboxd(Service):
+    def __init__(self):
+        self.j = Jukebox(config)
+        self.pui = PhysicalUI(config, self.j)
+        self.ap = AudioPlayer()
+
+    def start(self):
+        try:
+            self.j.run()
+            self.pui.run()
+        except Exception:
+            tb = traceback.format_exc()
+            logging.error(tb)
+
+    def stop(self):
+        pass
+
+    def startService(self):
+        super().startService()
+        self.start()
+
+    def stopService(self):
+        super().stopService()
+        self.stop()
+        time.sleep(0.5)
+        reactor.stop()
 
 if __name__ == '__main__':
-    j = Jukebox(config)
-    pui = PhysicalUI(config, j)
-    ap = AudioPlayer()
-
     try:
-        j.run()
-        pui.run()
+        j = Jukeboxd()
+        j.start()
         reactor.run()
     except Exception:
         tb = traceback.format_exc()
