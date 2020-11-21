@@ -46,7 +46,7 @@ class Cstatd(Service):
         self.pub_connection = ZmqPubConnection(factory, pub_endpoint)
 
     def publish(self, tag, message):
-        logging.info("publishing %s %s" % (tag, message))
+        #logging.info("publishing %s %s" % (tag, message))
         self.pub_connection.publish(message, tag=tag)
 
     ###########################################################################

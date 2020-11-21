@@ -55,7 +55,7 @@ class Bstatd(Service):
         self.block_listener = BlockListener(config, self.new_block_cb)
 
     def publish(self, tag, message):
-        logging.info("publishing %s %s" % (tag, message))
+        #logging.info("publishing %s %s" % (tag, message))
         self.pub_connection.publish(message, tag=tag)
 
     ###########################################################################
