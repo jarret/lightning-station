@@ -1,0 +1,23 @@
+[Unit]
+Description=Compute Stat Service
+Requires=bitcoind.service
+After=bitcoind.service
+Wants=network-online.target
+After=network-online.target
+
+
+[Service]
+ExecStart=/home/pi/.local/bin/twistd \
+    --nodaemon \
+    --python=/home/pi/btc-rust/git/lightning-station/cstatd/cstatd.tac \
+    --pidfile cstatd.pid
+
+WorkingDirectory=/tmp/
+
+User=pi
+Group=pi
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
