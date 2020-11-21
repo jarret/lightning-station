@@ -1,0 +1,18 @@
+[Unit]
+Description=Price Fetch Daemon
+
+[Service]
+ExecStart=/home/pi/.local/bin/twistd \
+    --nodaemon \
+    --python=/home/pi/btc-rust/git/lightning-station/priced/priced.tac \
+    --pidfile priced.pid
+
+WorkingDirectory=/tmp/
+
+User=pi
+Group=pi
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
