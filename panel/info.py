@@ -53,6 +53,7 @@ DEFAULT_INFO = {
     'tip_outputs': 100,
     'tip_block_weight': 100,
     'tip_block_size': 100,
+    'grind_stats': {},
 }
 
 class Info(dict):

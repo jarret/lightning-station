@@ -69,6 +69,8 @@ class Grindd(Service):
         self.grind_running = False
         self.window_data[height] = result
         self.start_blockchaininfo()
+        d = json.dumps({'grind_stats': self.window_data}).encode("utf8")
+        self.publish("grind_stats".encode("utf8"), d)
 
     def set_window(self, height):
         blocks = set(range(height + 1 - BLOCKS_HISTORY, height + 1))

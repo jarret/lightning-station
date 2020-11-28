@@ -33,6 +33,7 @@ CSTAT_TAGS = ['ip_addr',
               'mem_total',
               'mem_used',
               'mem_used_pct']
+GRIND_TAGS = ['grind_stats']
 
 class Subscribe():
     def __init__(self, config, info):
@@ -61,6 +62,13 @@ class Subscribe():
         connection = ZmqSubConnection(self.zmq_factory, cstat_endpoint)
         connection.gotMessage = self.update_info
         for tag in CSTAT_TAGS:
+            connection.subscribe(tag.encode("utf8"))
+
+        grind_endpoint = config['Panel']['ZmqSubGrindEndpoint']
+        grind_endpoint = ZmqEndpoint(ZmqEndpointType.connect, grind_endpoint)
+        connection = ZmqSubConnection(self.zmq_factory, grind_endpoint)
+        connection.gotMessage = self.update_info
+        for tag in GRIND_TAGS:
             connection.subscribe(tag.encode("utf8"))
 
     def update_info(self, message, tag):
