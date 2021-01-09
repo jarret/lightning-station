@@ -57,7 +57,7 @@ class Cstatd(Service):
                 message = json.dumps({tag: value}).encode("utf8")
                 tag = tag.encode("utf8")
                 self.publish(tag, message)
-            reactor.callLater(FETCH_DELAY, self.start_cpu_stat_fetch)
+        reactor.callLater(2.0, self.start_cpu_stat_fetch)
 
     def start_cpu_stat_fetch(self):
         d = threads.deferToThread(SysStats.get_cpu_stats)
@@ -69,7 +69,7 @@ class Cstatd(Service):
                 message = json.dumps({tag: value}).encode("utf8")
                 tag = tag.encode("utf8")
                 self.publish(tag, message)
-            reactor.callLater(FETCH_DELAY, self.start_mem_stat_fetch)
+        reactor.callLater(1.0, self.start_mem_stat_fetch)
 
     def start_mem_stat_fetch(self):
         d = threads.deferToThread(SysStats.get_mem_stats)
@@ -81,7 +81,7 @@ class Cstatd(Service):
                 message = json.dumps({tag: value}).encode("utf8")
                 tag = tag.encode("utf8")
                 self.publish(tag, message)
-            reactor.callLater(FETCH_DELAY, self.start_net_stat_fetch)
+        reactor.callLater(1.0, self.start_net_stat_fetch)
 
     def start_net_stat_fetch(self):
         d = threads.deferToThread(SysStats.get_net_stats)
