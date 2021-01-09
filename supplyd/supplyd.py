@@ -58,7 +58,7 @@ class Supplyd(Service):
         self.running = False
         self.current_block = 0
         self.measured_block = 0
-        self.meaasured_supply = 0
+        self.measured_supply = 0
 
     def publish_supply(self, supply):
         message = {'total_supply': supply}
@@ -93,21 +93,36 @@ class Supplyd(Service):
 
     ###########################################################################
 
+    def calc_best_estimate(self, current_block):
+        measured = self.measured_supply
+        added = Supplyd.perfect_supply_added(self.measured_block,
+                                             current_block)
+        return measured + added
+
+    def publish_best_estimate(self, current_block):
+        estimate = self.calc_best_estimate(current_block)
+        logging.info("publish: %s" % (estimate))
+        self.publish_supply(estimate)
+
+    ###########################################################################
+
     def post_new_utxo_supply(self, block, supply):
-        print("post: %s %s" % (block, supply))
+        logging.info("post: %s %s" % (block, supply))
+        self.measured_block = block
+        self.measured_supply = supply
+        self.publish_best_estimate(block)
 
     def utxo_scan_task_cb(self, txoutsetinfo):
         self.running = False
         if txoutsetinfo:
-            block = result['height']
-            supply = result['total_amount']
+            block = txoutsetinfo['height']
+            supply = txoutsetinfo['total_amount']
             self.post_new_utxo_supply(block, supply)
 
     def kickoff_utxo_scan_task_main(self):
         if self.running:
-            print("already running, not doing task")
+            logging.info("already running, not doing task")
             return
-        print("doing task")
         self.running = True
         d = threads.deferToThread(Bitcoind.gettxoutsetinfo)
         d.addCallback(self.utxo_scan_task_cb)
@@ -119,25 +134,24 @@ class Supplyd(Service):
 
     def getblockchaininfo_callback(self, blockchaininfo):
         if blockchaininfo:
-            blocks = blockchaininfo['blocks']
+            current_block = blockchaininfo['blocks']
+            self.publish_best_estimate(current_block)
 
     def start_blockchaininfo(self):
         d = threads.deferToThread(Bitcoind.getblockchaininfo)
         d.addCallback(self.getblockchaininfo_callback)
 
     def new_block_cb(self, block_hash):
-        print("block hash: %s" % block_hash)
+        logging.info("block hash: %s" % block_hash)
         self.start_blockchaininfo()
 
     ###########################################################################
 
     @staticmethod
     def run_tasks():
-        print("run tasks")
         schedule.run_pending()
 
     def run_tasks_cb(self, result):
-        print("callback")
         reactor.callLater(5.0, self.start_thread)
 
     def start_thread(self):
@@ -145,8 +159,7 @@ class Supplyd(Service):
         d.addCallback(self.run_tasks_cb)
 
     def start(self):
-        print("start")
-        schedule.every(10).seconds.do(self.kickoff_utxo_scan_task)
+        schedule.every(60).minutes.do(self.kickoff_utxo_scan_task)
         #schedule.every().day.at("10:30").do(self.boof)
         self.start_thread()
 
