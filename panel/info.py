@@ -76,7 +76,7 @@ class Info(dict):
         dir_path = os.path.dirname(filename)
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
-        record = DEFAULT_INFO.copy()
+        record = {k: (v, time.time() - 10000) for k, v in DEFAULT_INFO.items()}
         self.write_json(filename, record)
 
     def write_file(self, path, content):
@@ -105,13 +105,15 @@ class Info(dict):
     ###########################################################################
 
     def update_info(self, key, info):
-        self[key] = info
+        self[key] = (info, time.time())
         self.recalculate()
         self.persist()
 
     def recalculate(self):
         self['time'] = time.time()
-        self['price_cadbtc'] = 1.0 / self['price_btccad']
-        self['mkt_cap_cad'] = self['total_supply'] * self['price_btccad']
-        logging.info("recalced")
+        self['price_cadbtc'] = (1.0 / self['price_btccad'][0],
+                                self['price_btccad'][1])
+        t = min(self['total_supply'][1], self['price_btccad'][1])
+        self['mkt_cap_cad'] = (self['total_supply'][0] *
+                               self['price_btccad'][0], t)
 

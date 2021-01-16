@@ -8,6 +8,15 @@ import datetime
 from datetime import datetime
 from fixed_draw import FreeDrawFont, HalfBlock5x6Font
 
+def recent(items, secs):
+    now = time.time()
+    stripped = []
+    for i in items:
+        #print(i)
+        if (i[1] + secs < now):
+            return tuple(None for i in items)
+        stripped.append(i)
+    return tuple(i[0] for i in items)
 
 class Widget():
 
@@ -75,6 +84,16 @@ class Widget():
 
     @staticmethod
     def total_supply(total_supply):
+        #print("t1: %s" % total_supply)
+        (total_supply,) = recent((total_supply,), 60 * 60 * 4)
+        #print("t2: %s" % total_supply)
+        if total_supply is None:
+            markup = [("orange_minor_text", " ~ "),
+                      ("major_text", "(no supply info)"),
+                      ("grey_minor_text", " total"),
+                      ("orange_minor_text", " BTC ")]
+            w = Widget.big_5x6(markup, "center")
+            return w
         totalstr = "{:,}".format(total_supply)
         markup = [("orange_minor_text", " ~ "),
                   ("major_text", totalstr),
@@ -85,6 +104,14 @@ class Widget():
 
     @staticmethod
     def mkt_cap(mkt_cap):
+        (mkt_cap,) = recent((mkt_cap,), 60 * 60 * 4)
+        if mkt_cap is None:
+            markup = [("grey_minor_text", " Mkt Cap:"),
+                      ("dark_red_minor_text", " $ "),
+                      ("major_text", "(no mkt cap info)"),
+                      ("dark_red_minor_text", " CAD ")]
+            w = Widget.big_5x6(markup, "center")
+            return w
         mkt_cap_str = "{:,} ".format(int(mkt_cap))
         markup = [("grey_minor_text", " Mkt Cap:"),
                   ("dark_red_minor_text", " $ "),
@@ -95,6 +122,15 @@ class Widget():
 
     @staticmethod
     def price(price):
+        (price,) = recent((price,), 60 * 60)
+        if price is None:
+            markup = [("dark_red_minor_text", " $ "),
+                      ("major_text", "(no recent price info)"),
+                      ("dark_red_minor_text", " CAD "),
+                      ("grey_minor_text", "per"),
+                      ("orange_minor_text", " BTC ")]
+            w = Widget.big_5x6(markup, "center")
+            return w
         pricestr = "{:,.2f} ".format(round(price, 2))
         markup = [("dark_red_minor_text", " $ "),
                   ("major_text", pricestr),
@@ -106,6 +142,15 @@ class Widget():
 
     @staticmethod
     def inv_price(price):
+        (price,) = recent((price,), 60 * 60)
+        if price is None:
+            markup = [("dark_red_minor_text", " $ "),
+                      ("major_text", "(no recent price info)"),
+                      ("dark_red_minor_text", " CAD "),
+                      ("grey_minor_text", "per"),
+                      ("orange_minor_text", " BTC ")]
+            w = Widget.big_5x6(markup, "center")
+            return w
         price = round(price, 8)
         pricestr = " %0.8f" % price
         markup = [("orange_minor_text", " ~ "),
@@ -199,8 +244,9 @@ class Widget():
 
     @staticmethod
     def cpu_box(cpu_pcts, theme):
+        (cpu_pcts,) = recent((cpu_pcts,), 60 * 60)
         if cpu_pcts is None:
-            return Widget._dummy_box("(no cpu data)", theme)
+            return Widget._dummy_box("(no recent cpu data)", theme)
         lines = []
         for cpu in cpu_pcts:
             lines.append(Widget._progress_bar(cpu, theme))
@@ -209,8 +255,10 @@ class Widget():
 
     @staticmethod
     def ram_box(mem_total, mem_used, mem_used_pct, theme):
+        (mem_total, mem_used, mem_used_pct) = recent(
+            (mem_total, mem_used, mem_used_pct), 60 * 60)
         if mem_total is None:
-            return Widget._dummy_box("(no ram data)", theme)
+            return Widget._dummy_box("(no recent ram data)", theme)
 
         r = Widget._stat_line("Total", "{:,}".format(mem_total),
                             "bytes", theme)
@@ -225,8 +273,12 @@ class Widget():
     @staticmethod
     def mempool_box(mempool_txes, mempool_bytes, mempool_max_used,
                     mempool_mem_used, theme):
+        (mempool_txes, mempool_bytes, mempool_max_used,
+                    mempool_mem_used) = recent(
+            (mempool_txes, mempool_bytes, mempool_max_used, mempool_mem_used),
+             60 * 60)
         if mempool_txes is None:
-            return Widget._dummy_box("(no block data)", theme)
+            return Widget._dummy_box("(no recent mempool data)", theme)
 
         h = Widget._stat_line("Mempool Txes", "{:,}".format(mempool_txes),
                               None, theme)
@@ -241,6 +293,11 @@ class Widget():
 
     @staticmethod
     def estimates_box(fee_estimates, fee_estimates_eco, theme):
+        (fee_estimates, fee_estimates_eco) = recent(
+            (fee_estimates, fee_estimates_eco), 60 * 60)
+        if fee_estimates is None:
+            return Widget._dummy_box("(no recent estimate data)", theme)
+
         blocks = sorted(fee_estimates.keys(), key=lambda x: int(x))
 
         b_row = ["Blks"]
@@ -276,8 +333,11 @@ class Widget():
     @staticmethod
     def block_id_box(block_height, block_arrival_timestamp, block_timestamp,
                      theme):
+        (block_height, block_arrival_timestamp, block_timestamp) = (
+            recent((block_height, block_arrival_timestamp, block_timestamp),
+                    60 * 60 *  4))
         if block_height is None:
-            return Widget._dummy_box("(no block data)", theme)
+            return Widget._dummy_box("(no recent block data)", theme)
         h = Widget._stat_line("Height", str(block_height), None, theme)
         arrival = Widget._fmt_timestamp(block_arrival_timestamp)
         at = Widget._stat_line("Arrive Time", arrival, None, theme)
@@ -290,8 +350,11 @@ class Widget():
     @staticmethod
     def block_stat_box(block_n_txes, block_size, block_weight,
                        block_arrival_timestamp, theme):
+        (block_n_txes, block_size, block_weight, block_arrival_timestamp) = (
+            recent((block_n_txes, block_size, block_weight,
+                   block_arrival_timestamp), 60 * 60 *  4))
         if block_n_txes is None:
-            return Widget._dummy_box("(no block data)", theme)
+            return Widget._dummy_box("(no recent block data)", theme)
         tx = Widget._stat_line("Included",
                                "{:,}".format(block_n_txes),
                                "txs", theme)
