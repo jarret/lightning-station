@@ -161,14 +161,6 @@ class Widget():
         w = Widget.big_5x6(markup, "center")
         return w
 
-    @staticmethod
-    def date_and_time(timestamp):
-        timestr = datetime.fromtimestamp(timestamp).strftime(
-            " %d/%m/%y %H:%M:%S ")
-        markup = [("grey_minor_text", timestr)]
-        w = Widget.big_5x6(markup, "center")
-        return w
-
     ###########################################################################
 
     @staticmethod
@@ -369,3 +361,11 @@ class Widget():
         e = Widget._elapsed_line(elapsed, "last block", theme)
         lines = [tx, s, w, e]
         return Widget._line_pile_box(lines, "Block Stats", theme)
+
+    @staticmethod
+    def date_and_time_box(timestamp, theme):
+        timestr = datetime.fromtimestamp(timestamp).strftime(
+            " %d/%m/%y %H:%M:%S ")
+        markup = [("grey_minor_text", timestr)]
+        t = urwid.Text(markup, align='center')
+        return Widget._line_pile_box([t], "Time", theme)

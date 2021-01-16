@@ -63,7 +63,6 @@ class Screen():
         inv_price = Widget.inv_price(self.info['price_cadbtc'])
         mkt_cap_str = self.info['mkt_cap_cad']
         mkt_cap = Widget.mkt_cap(self.info['mkt_cap_cad'])
-        #dt = Widget.date_and_time(time.time())
 
         c3 = urwid.Pile([(6, price), (6, inv_price), (6, mkt_cap)])
         c3 = urwid.Filler(c3)
@@ -74,6 +73,7 @@ class Screen():
         return row
 
     def _assemble_middle_row(self):
+        dt = Widget.date_and_time_box(time.time(), GREY_THEME)
         cpu = Widget.cpu_box(self.info['cpu_pct'], BLUE_THEME)
         #cpu = urwid.Filler(cpu)
         ram = Widget.ram_box(self.info['mem_total'], self.info['mem_used'],
@@ -86,7 +86,7 @@ class Screen():
                                    self.info['fee_estimates_eco'], PURPLE_THEME)
         #ram = urwid.Filler(ram)
 
-        syslist = urwid.ListBox([cpu, ram, mem, fee])
+        syslist = urwid.ListBox([dt, cpu, ram, mem, fee])
         #boxpile = urwid.Filler(boxpile)
         row = urwid.Columns([(40, syslist)])
         row = urwid.AttrMap(row, "spearmint_back")
