@@ -46,6 +46,13 @@ DEFAULT_INFO = {
                           100: 6,
                           250: 5,
                           500: 4},
+    'fee_estimates_cad_250': {1:   1.2,
+                              5:   0.3,
+                              25:  0.3,
+                              50:  0.3,
+                              100: 0.3,
+                              250: 0.3,
+                              500: 0.3},
     'last_block_arrive_time': 1603658136,
     'tip_ntx': 100,
     'tip_block_time': 1603658133,
@@ -55,6 +62,8 @@ DEFAULT_INFO = {
     'tip_block_size': 100,
     'grind_stats': {},
 }
+
+SATS_PER_BTC = 100000000.0
 
 class Info(dict):
     def __init__(self, config):
@@ -104,6 +113,21 @@ class Info(dict):
 
     ###########################################################################
 
+    def calc_fee_estimates_cad_250(self):
+        ret = {}
+        for target, sats_per_byte in self['fee_estimates'][0].items():
+            sats = sats_per_byte * 250
+            #logging.info("sats: %s" % sats)
+            btc = sats / SATS_PER_BTC
+            #logging.info("btc: %s" % btc)
+            #logging.info("cadbtc: %s" % self['price_btccad'][0])
+            cad = btc * self['price_btccad'][0]
+            #logging.info("cad: %s" % cad)
+            ret[target] = round(cad, 2)
+        return ret, min(self['fee_estimates'][1], self['price_btccad'][1])
+
+    ###########################################################################
+
     def update_info(self, key, info):
         self[key] = (info, time.time())
         self.recalculate()
@@ -116,4 +140,5 @@ class Info(dict):
         t = min(self['total_supply'][1], self['price_btccad'][1])
         self['mkt_cap_cad'] = (self['total_supply'][0] *
                                self['price_btccad'][0], t)
-
+        self['fee_estimates_cad_250'] = self.calc_fee_estimates_cad_250()
+        #logging.info(self['fee_estimates_cad_250'])

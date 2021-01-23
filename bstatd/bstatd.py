@@ -35,7 +35,7 @@ config.read(CONFIG_FILE)
 
 LOG_FILE = os.path.join(CONFIG_DIR, "bstatd.log")
 setup_logging(LOG_FILE, "bstatd", console_silent=True,
-              min_level=logging.DEBUG)
+              min_level=logging.INFO)
 
 PUBLISH_ENDPOINT = config['Bstatd']['ZmqPubEndpoint']
 

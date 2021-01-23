@@ -46,9 +46,6 @@ Bitcoind.URL = Bitcoind.gen_url(host=config['Bstatd']['BitcoindHost'],
                                 password=config['Bstatd']['BitcoindPassword'])
 
 
-reward = [50, 25, 12.5, 6.25, 3.125, 1.5625]
-
-
 class Supplyd(Service):
     def __init__(self):
         factory = ZmqFactory()

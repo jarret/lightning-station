@@ -85,7 +85,7 @@ class Widget():
     @staticmethod
     def total_supply(total_supply):
         #print("t1: %s" % total_supply)
-        (total_supply,) = recent((total_supply,), 60 * 60 * 4)
+        (total_supply,) = recent((total_supply,), 60 * 60 * 24 * 14)
         #print("t2: %s" % total_supply)
         if total_supply is None:
             markup = [("orange_minor_text", " ~ "),
@@ -104,7 +104,7 @@ class Widget():
 
     @staticmethod
     def mkt_cap(mkt_cap):
-        (mkt_cap,) = recent((mkt_cap,), 60 * 60 * 4)
+        (mkt_cap,) = recent((mkt_cap,), 60 * 60 * 24 * 14)
         if mkt_cap is None:
             markup = [("grey_minor_text", " Mkt Cap:"),
                       ("dark_red_minor_text", " $ "),
@@ -321,6 +321,32 @@ class Widget():
         e_str = Widget._row(e_strs, theme)
         lines = [b_str, c_str, e_str]
         return Widget._line_pile_box(lines, "Fee Estimates (sat/byte)", theme)
+
+    @staticmethod
+    def cad_estimates_box(fee_estimates_cad_250, theme):
+        (fee_estimates_cad_250,) = recent((fee_estimates_cad_250,), 60 * 60)
+        if fee_estimates_cad_250 is None:
+            return Widget._dummy_box("(no recent estimate data)", theme)
+        blocks = sorted(fee_estimates_cad_250.keys(), key=lambda x: int(x))
+        b_row = ["Blks"]
+        b_row += [str(b) for b in blocks]
+        c_row = ["CAD"]
+        c_row += ["$" + str(round(fee_estimates_cad_250[b], 2)) for b in
+                  blocks]
+        b_strs = []
+        c_strs = []
+        for i in range(len(blocks) + 1):
+            b = b_row[i]
+            c = c_row[i]
+            width = max(len(b), len(c))
+            fmt = "%%%ds" % width
+            b_strs.append(fmt % b)
+            c_strs.append(fmt % c)
+        b_str = Widget._title_row(b_strs, theme)
+        c_str = Widget._row(c_strs, theme)
+        lines = [b_str, c_str]
+        return Widget._line_pile_box(lines, "CAD Fee Estimate - 250 byte tx",
+                                     theme)
 
     @staticmethod
     def block_id_box(block_height, block_arrival_timestamp, block_timestamp,

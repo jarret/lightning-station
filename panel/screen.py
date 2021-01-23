@@ -84,26 +84,26 @@ class Screen():
                                  self.info['mempool_mem_used'], PURPLE_THEME)
         fee = Widget.estimates_box(self.info['fee_estimates'],
                                    self.info['fee_estimates_eco'], PURPLE_THEME)
+        cadfee = Widget.cad_estimates_box(self.info['fee_estimates_cad_250'],
+                                          PURPLE_THEME)
         #ram = urwid.Filler(ram)
 
-        syslist = urwid.ListBox([dt, cpu, ram, mem, fee])
+        c1 = urwid.ListBox([dt, cpu, ram, mem])
+        c2 = urwid.ListBox([fee, cadfee])
         #boxpile = urwid.Filler(boxpile)
-        row = urwid.Columns([(40, syslist)])
+        row = urwid.Columns([(40, c1), (60, c2)])
         row = urwid.AttrMap(row, "spearmint_back")
         return row
 
     def _assemble_bottom_row(self):
-
         i = Widget.block_id_box(self.info['blockchain_height'],
                                 self.info['last_block_arrive_time'],
                                 self.info['tip_block_time'], GREEN_THEME)
-
         s = Widget.block_stat_box(self.info['tip_ntx'],
                                   self.info['tip_block_size'],
                                   self.info['tip_block_weight'],
                                   self.info['last_block_arrive_time'],
                                   GREEN_THEME)
-
         blist = urwid.ListBox([i, s])
         row = urwid.Columns([(40, blist)])
         row = urwid.AttrMap(row, "coke_back")
