@@ -145,12 +145,12 @@ class BlockStats():
                self.get_input_type(i) == 'witness_v0_scripthash']
 
         input_values = [self.get_input_value(i) for i in inputs]
-        new_coins = sum(output_values) - sum(input_values)
+        new_coins = round(sum(output_values) - sum(input_values), 8)
 
         coinbase_tx = info['tx'][0]
         assert 'coinbase' in coinbase_tx['vin'][0]
         coinbase_out = coinbase_tx['vout'][0]['value']
-        fees_collected = coinbase_out - new_coins
+        fees_collected = round(coinbase_out - new_coins, 8)
 
         r = {}
         r['height'] = info['height']
@@ -161,8 +161,8 @@ class BlockStats():
         r['n_inputs'] = len(inputs)
         r['n_outputs'] = len(outputs)
         r['utxo_delta'] = utxo_delta
-        r['total_input_btc'] = sum(input_values)
-        r['total_output_btc'] = sum(output_values)
+        r['total_input_btc'] = round(sum(input_values), 8)
+        r['total_output_btc'] = round(sum(output_values), 8)
         r['new_coins'] = new_coins
         r['miner_fees'] = fees_collected
         r['1_prefixed_inputs'] = len(opi)

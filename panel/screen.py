@@ -49,6 +49,10 @@ class Screen():
         else:
             logging.info("got keypress: %s" % str(key))
 
+    ###########################################################################
+    # header
+    ###########################################################################
+
     def _assemble_header_row(self):
         btc_symb = Widget.btc_symb()
         itcoin = Widget.itcoin()
@@ -72,7 +76,11 @@ class Screen():
         row = urwid.AttrMap(row, "orange")
         return row
 
-    def _assemble_middle_row(self):
+    ###########################################################################
+    # body
+    ###########################################################################
+
+    def column_1(self):
         dt = Widget.date_and_time_box(time.time(), GREY_THEME)
         cpu = Widget.cpu_box(self.info['cpu_pct'], BLUE_THEME)
         #cpu = urwid.Filler(cpu)
@@ -82,20 +90,6 @@ class Screen():
                                  self.info['mempool_bytes'],
                                  self.info['mempool_mem_max'],
                                  self.info['mempool_mem_used'], PURPLE_THEME)
-        fee = Widget.estimates_box(self.info['fee_estimates'],
-                                   self.info['fee_estimates_eco'], PURPLE_THEME)
-        cadfee = Widget.cad_estimates_box(self.info['fee_estimates_cad_250'],
-                                          PURPLE_THEME)
-        #ram = urwid.Filler(ram)
-
-        c1 = urwid.ListBox([dt, cpu, ram, mem])
-        c2 = urwid.ListBox([fee, cadfee])
-        #boxpile = urwid.Filler(boxpile)
-        row = urwid.Columns([(40, c1), (60, c2)])
-        row = urwid.AttrMap(row, "spearmint_back")
-        return row
-
-    def _assemble_bottom_row(self):
         i = Widget.block_id_box(self.info['blockchain_height'],
                                 self.info['last_block_arrive_time'],
                                 self.info['tip_block_time'], GREEN_THEME)
@@ -104,17 +98,52 @@ class Screen():
                                   self.info['tip_block_weight'],
                                   self.info['last_block_arrive_time'],
                                   GREEN_THEME)
-        blist = urwid.ListBox([i, s])
-        row = urwid.Columns([(40, blist)])
-        row = urwid.AttrMap(row, "coke_back")
+        c = urwid.ListBox([dt, cpu, ram, mem, i, s])
+        return c
+
+    def column_2(self):
+        fee = Widget.estimates_box(self.info['fee_estimates'],
+                                   self.info['fee_estimates_eco'], PURPLE_THEME)
+        cadfee = Widget.cad_estimates_box(self.info['fee_estimates_cad_250'],
+                                          PURPLE_THEME)
+        c = urwid.ListBox([fee, cadfee])
+        return c
+
+    def column_3(self):
+        f = []
+        for block in sorted(self.info['grind_stats'][0].keys()):
+            f.append(Widget.block_details_box(self.info['grind_stats'],
+                                              self.info['miner_rewards_cad'],
+                                              block, PURPLE_THEME))
+        f.reverse()
+        return urwid.ListBox(f[:5])
+
+    def column_4(self):
+        val = Widget.value_transferred(self.info['grind_stats'],
+                                       self.info['price_btccad'],
+                                       GREEN_THEME)
+        c = urwid.ListBox([val])
+        return c
+
+    def _assemble_body_row(self):
+        c1 = self.column_1()
+        c2 = self.column_2()
+        c3 = self.column_3()
+        c4 = self.column_4()
+        row = urwid.Columns([(40, c1), (60, c2), (40, c3), (120, c4)])
+        row = urwid.AttrMap(row, "spearmint_back")
         return row
+
+    ###########################################################################
+    # draw
+    ###########################################################################
 
     def assemble_widgets(self):
         header_row = self._assemble_header_row()
-        middle_row = self._assemble_middle_row()
-        bottom_row = self._assemble_bottom_row()
+        body_row = self._assemble_body_row()
+        #bottom_row = self._assemble_bottom_row()
 
-        w = urwid.Pile([header_row, middle_row, bottom_row])
+        w = urwid.Pile([(30, header_row), body_row])
         return w
 
     def draw_screen(self):

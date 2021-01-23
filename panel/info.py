@@ -61,6 +61,7 @@ DEFAULT_INFO = {
     'tip_block_weight': 100,
     'tip_block_size': 100,
     'grind_stats': {},
+    'miner_reward_cad': {},
 }
 
 SATS_PER_BTC = 100000000.0
@@ -126,6 +127,14 @@ class Info(dict):
             ret[target] = round(cad, 2)
         return ret, min(self['fee_estimates'][1], self['price_btccad'][1])
 
+    def calc_miner_reward_cad(self):
+        ret = {}
+        for block, details in self['grind_stats'][0].items():
+            btc = details['miner_fees'] + details['new_coins']
+            cad = round(btc * self['price_btccad'][0], 2)
+            ret[block] = cad
+        return ret, min(self['grind_stats'][1], self['price_btccad'][1])
+
     ###########################################################################
 
     def update_info(self, key, info):
@@ -142,3 +151,4 @@ class Info(dict):
                                self['price_btccad'][0], t)
         self['fee_estimates_cad_250'] = self.calc_fee_estimates_cad_250()
         #logging.info(self['fee_estimates_cad_250'])
+        self['miner_rewards_cad'] = self.calc_miner_reward_cad()

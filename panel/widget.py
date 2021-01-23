@@ -376,7 +376,6 @@ class Widget():
         tx = Widget._stat_line("Included",
                                "{:,}".format(block_n_txes),
                                "txs", theme)
-
         s = Widget._stat_line("Block Size",
                               "{:,}".format(block_size),
                               "bytes", theme)
@@ -387,6 +386,70 @@ class Widget():
         e = Widget._elapsed_line(elapsed, "last block", theme)
         lines = [tx, s, w, e]
         return Widget._line_pile_box(lines, "Block Stats", theme)
+
+    @staticmethod
+    def block_details_box(grind_stats, rewards, block, theme):
+        (grind_stats, rewards) = recent((grind_stats, rewards), 60 * 60)
+        grind_stats = grind_stats[block]
+        reward = rewards[block]
+        size = Widget._stat_line("Block Size", "{:,}".format(
+            grind_stats['size']), "bytes", theme)
+        weight = Widget._stat_line("Block Weight", "{:,}".format(
+            grind_stats['weight']), "vbytes", theme)
+        new_coins = Widget._stat_line("New Coins", "{:,}".format(
+            grind_stats['new_coins']), "BTC", theme)
+        miner_fees = Widget._stat_line("Miner Fees", "{:,}".format(
+            grind_stats['miner_fees']), "BTC", theme)
+        miner_reward = Widget._stat_line("Miner Reward", "${:,}".format(reward),
+            "CAD", theme)
+        lines = [size, weight, new_coins, miner_fees, miner_reward]
+        return Widget._line_pile_box(lines, "Block %s" % block, theme)
+
+    @staticmethod
+    def value_transferred(grind_stats, price_btccad, theme):
+        (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
+                                             60 * 60)
+
+        lines = []
+        title = urwid.Text([(theme['minor_text'], "  block         "),
+                            (theme['minor_text'], "  BTC      "),
+                            (theme['minor_text'], "  CAD   "),
+                            (theme['minor_text'], "  min CAD tx  "),
+                            (theme['minor_text'], "  median CAD tx  "),
+                            (theme['minor_text'], "  mean CAD tx  "),
+                            (theme['minor_text'], "  max CAD  tx "),
+                           ],
+                            align='center')
+        lines.append(title)
+        for block in sorted(grind_stats.keys(), reverse=True):
+            inputs = grind_stats[block]['total_input_btc']
+            cad = round(price_btccad * inputs, 2)
+            mincad = round(price_btccad *
+                           grind_stats[block]['tx_out_btc']['min'], 2)
+            meancad = round(price_btccad *
+                            grind_stats[block]['tx_out_btc']['mean'], 2)
+            mediancad = round(price_btccad *
+                              grind_stats[block]['tx_out_btc']['median'], 2)
+            maxcad = round(price_btccad *
+                           grind_stats[block]['tx_out_btc']['max'], 2)
+            line = urwid.Text([(theme['minor_text'], "  %s  " % block),
+                               (theme['major_text'], "  %0.8f   " % inputs),
+                               (theme['major_text'],
+                                "  ${:,}  ".format(round(cad, 2))),
+                               (theme['major_text'],
+                                "  ${:,}  ".format(round(mincad, 2))),
+                               (theme['major_text'],
+                                "  ${:,}  ".format(round(mediancad, 2))),
+                               (theme['major_text'],
+                                "  ${:,}  ".format(round(meancad, 2))),
+                               (theme['major_text'],
+                                "  ${:,}  ".format(round(maxcad, 2))),
+                              ],
+                               align='center')
+            lines.append(line)
+
+        return Widget._line_pile_box(lines, "Value Transferred", theme)
+
 
     @staticmethod
     def date_and_time_box(timestamp, theme):
