@@ -98,31 +98,52 @@ class Screen():
                                   self.info['tip_block_weight'],
                                   self.info['last_block_arrive_time'],
                                   GREEN_THEME)
-        c = urwid.ListBox([dt, cpu, ram, mem, i, s])
+        f = []
+        for block in sorted(self.info['grind_stats'][0].keys()):
+            f.append(Widget.block_details_box(self.info['grind_stats'],
+                                              self.info['miner_rewards_cad'],
+                                              block, SPEARMINT_THEME))
+        f.reverse()
+        c = urwid.ListBox([dt, cpu, ram, mem, i, s] + f[:3])
         return c
 
     def column_2(self):
         fee = Widget.estimates_box(self.info['fee_estimates'],
                                    self.info['fee_estimates_eco'], PURPLE_THEME)
         cadfee = Widget.cad_estimates_box(self.info['fee_estimates_cad_250'],
-                                          PURPLE_THEME)
+                                          COKE_THEME)
         c = urwid.ListBox([fee, cadfee])
         return c
 
-    def column_3(self):
-        f = []
-        for block in sorted(self.info['grind_stats'][0].keys()):
-            f.append(Widget.block_details_box(self.info['grind_stats'],
-                                              self.info['miner_rewards_cad'],
-                                              block, PURPLE_THEME))
-        f.reverse()
-        return urwid.ListBox(f[:5])
+    #def column_3(self):
+    #    f = []
+    #    for block in sorted(self.info['grind_stats'][0].keys()):
+    #        f.append(Widget.block_details_box(self.info['grind_stats'],
+    #                                          self.info['miner_rewards_cad'],
+    #                                          block, PURPLE_THEME))
+    #    f.reverse()
+    #    return urwid.ListBox(f[:5])
 
-    def column_4(self):
+    def column_3(self):
         val = Widget.value_transferred(self.info['grind_stats'],
                                        self.info['price_btccad'],
-                                       GREEN_THEME)
-        c = urwid.ListBox([val])
+                                       YELLOW_THEME)
+        tx_size = Widget.tx_size(self.info['grind_stats'],
+                                 self.info['price_btccad'],
+                                 BLUE_THEME)
+        io = Widget.inputs_outputs(self.info['grind_stats'],
+                                   self.info['price_btccad'],
+                                   GREEN_THEME)
+        iot = Widget.input_output_types(self.info['grind_stats'],
+                                        self.info['price_btccad'],
+                                        RED_THEME)
+        c = urwid.ListBox([val, tx_size, io, iot])
+        return c
+
+    def column_4(self):
+        fees = Widget.fees_paid(self.info['grind_stats'],
+                               self.info['price_btccad'], SPARK_THEME)
+        c = urwid.ListBox([fees])
         return c
 
     def _assemble_body_row(self):
@@ -130,7 +151,7 @@ class Screen():
         c2 = self.column_2()
         c3 = self.column_3()
         c4 = self.column_4()
-        row = urwid.Columns([(40, c1), (60, c2), (40, c3), (120, c4)])
+        row = urwid.Columns([(40, c1), (58, c2), (110, c3), (100, c4)])
         row = urwid.AttrMap(row, "spearmint_back")
         return row
 

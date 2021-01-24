@@ -390,6 +390,8 @@ class Widget():
     @staticmethod
     def block_details_box(grind_stats, rewards, block, theme):
         (grind_stats, rewards) = recent((grind_stats, rewards), 60 * 60)
+        if grind_stats is None:
+            return Widget._dummy_box("(no recent block data)", theme)
         grind_stats = grind_stats[block]
         reward = rewards[block]
         size = Widget._stat_line("Block Size", "{:,}".format(
@@ -409,6 +411,8 @@ class Widget():
     def value_transferred(grind_stats, price_btccad, theme):
         (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
                                              60 * 60)
+        if grind_stats is None:
+            return Widget._dummy_box("(no recent block data)", theme)
 
         lines = []
         title = urwid.Text([(theme['minor_text'], "  block         "),
@@ -450,6 +454,219 @@ class Widget():
 
         return Widget._line_pile_box(lines, "Value Transferred", theme)
 
+
+    @staticmethod
+    def pad_align_cols(rows):
+        new_rows = []
+        for i in range(len(rows[0])):
+            new_rows.append([])
+            max_width = 0
+            for j in range(len(rows)):
+                max_width = max(max_width, len(rows[j][i]))
+            for j in range(len(rows)):
+                fmt = "%%%ds" % max_width
+                new_rows[i].append(fmt % rows[j][i])
+        return [list(i) for i in zip(*new_rows)]
+
+    @staticmethod
+    def value_transferred(grind_stats, price_btccad, theme):
+        (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
+                                             60 * 60)
+        if grind_stats is None:
+            return Widget._dummy_box("(no recent tx data)", theme)
+
+        t_row = ['Block', 'BTC', "Txs", 'CAD', ' Mean CAD/tx', 'Min CAD/tx',
+                 'Median CAD/tx', 'Max CAD/tx']
+        rows = [t_row]
+        for block in sorted(grind_stats.keys(), reverse=True):
+            inputs = grind_stats[block]['total_input_btc']
+            txs = grind_stats[block]['n_transactions']
+            cad = round(price_btccad * inputs, 2)
+            mincad = round(price_btccad *
+                           grind_stats[block]['tx_out_btc']['min'], 2)
+            meancad = round(price_btccad *
+                            grind_stats[block]['tx_out_btc']['mean'], 2)
+            mediancad = round(price_btccad *
+                              grind_stats[block]['tx_out_btc']['median'], 2)
+            maxcad = round(price_btccad *
+                           grind_stats[block]['tx_out_btc']['max'], 2)
+            rows.append([str(block), "%0.8f" % inputs,
+                         "{:,}".format(txs),
+                         "${:,.2f}".format(round(cad, 2)),
+                         "${:,.2f}".format(round(meancad, 2)),
+                         "${:,.2f}".format(round(mincad, 2)),
+                         "${:,.2f}".format(round(mediancad, 2)),
+                         "${:,.2f}".format(round(maxcad, 2))])
+        rows = Widget.pad_align_cols(rows)
+        lines = []
+        lines.append(Widget._title_row(rows[0], theme))
+        for row in rows[1:]:
+            lines.append(Widget._row(row, theme))
+        return Widget._line_pile_box(lines, "Value Transferred", theme)
+
+    @staticmethod
+    def tx_size(grind_stats, price_btccad, theme):
+        (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
+                                             60 * 60)
+        if grind_stats is None:
+            return Widget._dummy_box("(no recent tx data)", theme)
+
+        t_row = ['Block', "Txs", 'Mean b/tx', 'Min b/tx', 'Median b/tx',
+                 'Max b/tx', "Mean vb/tx", "Min vb/tx", "Median vb/tx",
+                 "Max vb/tx"]
+        rows = [t_row]
+        for block in sorted(grind_stats.keys(), reverse=True):
+            txs = grind_stats[block]['n_transactions']
+            meanb = int(grind_stats[block]['tx_size']['mean'])
+            minb = grind_stats[block]['tx_size']['min']
+            medianb = int(grind_stats[block]['tx_size']['median'])
+            maxb = grind_stats[block]['tx_size']['max']
+            meanvb = int(grind_stats[block]['tx_vsize']['mean'])
+            minvb = grind_stats[block]['tx_vsize']['min']
+            medianvb = int(grind_stats[block]['tx_vsize']['median'])
+            maxvb = grind_stats[block]['tx_vsize']['max']
+            rows.append([str(block),
+                         "{:,}".format(txs),
+                         "{:,}".format(meanb),
+                         "{:,}".format(minb),
+                         "{:,}".format(medianb),
+                         "{:,}".format(maxb),
+                         "{:,}".format(meanvb),
+                         "{:,}".format(minvb),
+                         "{:,}".format(medianvb),
+                         "{:,}".format(maxvb),
+                        ])
+        rows = Widget.pad_align_cols(rows)
+        lines = []
+        lines.append(Widget._title_row(rows[0], theme))
+        for row in rows[1:]:
+            lines.append(Widget._row(row, theme))
+        return Widget._line_pile_box(lines, "Transaction Size", theme)
+
+    @staticmethod
+    def inputs_outputs(grind_stats, price_btccad, theme):
+        (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
+                                             60 * 60)
+        if grind_stats is None:
+            return Widget._dummy_box("(no recent tx data)", theme)
+
+        t_row = ['Block', "Txs", "UTXO Delta", 'MeanVin', 'MinVin', 'MedianVin',
+                 'MaxVin', "MeanVout", "MinVout", "MedianVout",
+                 "MaxVout"]
+        rows = [t_row]
+        for block in sorted(grind_stats.keys(), reverse=True):
+            txs = grind_stats[block]['n_transactions']
+            delta = grind_stats[block]['utxo_delta']
+            meanin = int(grind_stats[block]['tx_n_vins']['mean'])
+            minin = int(grind_stats[block]['tx_n_vins']['min'])
+            medianin = int(grind_stats[block]['tx_n_vins']['median'])
+            maxin = int(grind_stats[block]['tx_n_vins']['max'])
+            meanout = int(grind_stats[block]['tx_n_vouts']['mean'])
+            minout = int(grind_stats[block]['tx_n_vouts']['min'])
+            medianout = int(grind_stats[block]['tx_n_vouts']['median'])
+            maxout = int(grind_stats[block]['tx_n_vouts']['max'])
+            rows.append([str(block),
+                         "{:,}".format(txs),
+                         "{:,}".format(delta),
+                         "{:,}".format(meanin),
+                         "{:,}".format(minin),
+                         "{:,}".format(medianin),
+                         "{:,}".format(maxin),
+                         "{:,}".format(meanout),
+                         "{:,}".format(minout),
+                         "{:,}".format(medianout),
+                         "{:,}".format(maxout),
+                        ])
+        rows = Widget.pad_align_cols(rows)
+        lines = []
+        lines.append(Widget._title_row(rows[0], theme))
+        for row in rows[1:]:
+            lines.append(Widget._row(row, theme))
+        return Widget._line_pile_box(lines, "Transaction Vins/Vouts", theme)
+
+    @staticmethod
+    def input_output_types(grind_stats, price_btccad, theme):
+        (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
+                                             60 * 60)
+        if grind_stats is None:
+            return Widget._dummy_box("(no recent tx data)", theme)
+
+        t_row = ['Block', "Total In",
+                 "1* In", "3* In", 'b32 In', 'b32s In',
+                 "Total Out", "1* Out", "3* Out", 'b32 Out',
+                 'b32s Out', 'OP_RETURN']
+        rows = [t_row]
+        for block in sorted(grind_stats.keys(), reverse=True):
+            total_in = grind_stats[block]['n_inputs']
+            opin = grind_stats[block]['1_prefixed_inputs']
+            tpin = grind_stats[block]['3_prefixed_inputs']
+            bc1in = grind_stats[block]['key_bc1_prefixed_inputs']
+            sbcin = grind_stats[block]['script_bc1_prefixed_inputs']
+            total_out = grind_stats[block]['n_outputs']
+            opout = grind_stats[block]['1_prefixed_outputs']
+            tpout = grind_stats[block]['3_prefixed_outputs']
+            bc1out = grind_stats[block]['key_bc1_prefixed_outputs']
+            sbcout = grind_stats[block]['script_bc1_prefixed_outputs']
+            orout = grind_stats[block]['op_return_outputs']
+
+            rows.append([str(block),
+                         "{:,}".format(total_in),
+                         "{:,}".format(opin),
+                         "{:,}".format(tpin),
+                         "{:,}".format(bc1in),
+                         "{:,}".format(sbcin),
+                         "{:,}".format(total_out),
+                         "{:,}".format(opout),
+                         "{:,}".format(tpout),
+                         "{:,}".format(bc1out),
+                         "{:,}".format(sbcout),
+                         "{:,}".format(orout),
+                        ])
+        rows = Widget.pad_align_cols(rows)
+        lines = []
+        lines.append(Widget._title_row(rows[0], theme))
+        for row in rows[1:]:
+            lines.append(Widget._row(row, theme))
+        return Widget._line_pile_box(lines, "Transaction Vins/Vouts", theme)
+
+    @staticmethod
+    def fees_paid(grind_stats, price_btccad, theme):
+        (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
+                                             60 * 60)
+        if grind_stats is None:
+            return Widget._dummy_box("(no recent tx data)", theme)
+
+        #import json
+        #print(json.dumps(grind_stats, indent=1))
+        t_row = ['Block', "Mean BTC", "Min BTC", "Median BTC", "Max BTC",
+                 "Mean CAD", "Min CAD", "Median CAD", "Max CAD"]
+        rows = [t_row]
+        for block in sorted(grind_stats.keys(), reverse=True):
+            meanbtc = grind_stats[block]['fees_paid']['mean']
+            minbtc = grind_stats[block]['fees_paid']['min']
+            medianbtc = grind_stats[block]['fees_paid']['median']
+            maxbtc = grind_stats[block]['fees_paid']['max']
+            meancad = grind_stats[block]['fees_paid']['mean'] * price_btccad
+            mincad = grind_stats[block]['fees_paid']['min'] * price_btccad
+            mediancad = grind_stats[block]['fees_paid']['median'] * price_btccad
+            maxcad = grind_stats[block]['fees_paid']['max'] * price_btccad
+
+            rows.append([str(block),
+                         "%0.8f" % meanbtc,
+                         "%0.8f" % minbtc,
+                         "%0.8f" % medianbtc,
+                         "%0.8f" % maxbtc,
+                         "${:,.2f}".format(round(meancad, 2)),
+                         "${:,.2f}".format(round(mincad, 2)),
+                         "${:,.2f}".format(round(mediancad, 2)),
+                         "${:,.2f}".format(round(maxcad, 2)),
+                        ])
+        rows = Widget.pad_align_cols(rows)
+        lines = []
+        lines.append(Widget._title_row(rows[0], theme))
+        for row in rows[1:]:
+            lines.append(Widget._row(row, theme))
+        return Widget._line_pile_box(lines, "Transaction Fees Paid", theme)
 
     @staticmethod
     def date_and_time_box(timestamp, theme):

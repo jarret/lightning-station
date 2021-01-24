@@ -97,6 +97,19 @@ class BlockStats():
 
     ###########################################################################
 
+    def get_fees_paid(self, tx):
+        #print("input: %s" % tx['vin'])
+        ins = sum(self.get_input_value(i) for i in tx['vin']
+                  if 'coinbase' not in i)
+        outs = sum(self.get_output_value(i) for i in tx['vout'])
+        return ins - outs
+
+    def get_all_fees_paid(self, info):
+        return [f for f in
+                [self.get_fees_paid(tx) for tx in info['tx']] if f > 0, ]
+
+    ###########################################################################
+
     def crunch_vals(self, vals):
         return {"min":    min(vals),
                 "max":    max(vals),
@@ -152,6 +165,9 @@ class BlockStats():
         coinbase_out = coinbase_tx['vout'][0]['value']
         fees_collected = round(coinbase_out - new_coins, 8)
 
+        all_fees_paid = self.get_all_fees_paid(info);
+        #print("all paid: %s" % all_paid)
+
         r = {}
         r['height'] = info['height']
         r['block_hash'] = self.block_hash
@@ -179,6 +195,7 @@ class BlockStats():
         r['tx_n_vins'] = self.crunch_vals(nvins)
         r['tx_n_vouts'] = self.crunch_vals(nvouts)
         r['tx_out_btc'] = self.crunch_vals(output_values)
+        r['fees_paid'] = self.crunch_vals(all_fees_paid)
         return r
 
     ###########################################################################
