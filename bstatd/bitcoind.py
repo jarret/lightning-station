@@ -74,6 +74,10 @@ class Bitcoind():
         return Bitcoind.call('getnetworkinfo')
 
     @staticmethod
+    def getpeerinfo():
+        return Bitcoind.call('getpeerinfo')
+
+    @staticmethod
     def getblockhash(height):
         return hod
 

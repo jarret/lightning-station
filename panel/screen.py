@@ -90,21 +90,7 @@ class Screen():
                                  self.info['mempool_bytes'],
                                  self.info['mempool_mem_max'],
                                  self.info['mempool_mem_used'], PURPLE_THEME)
-        i = Widget.block_id_box(self.info['blockchain_height'],
-                                self.info['last_block_arrive_time'],
-                                self.info['tip_block_time'], GREEN_THEME)
-        s = Widget.block_stat_box(self.info['tip_ntx'],
-                                  self.info['tip_block_size'],
-                                  self.info['tip_block_weight'],
-                                  self.info['last_block_arrive_time'],
-                                  GREEN_THEME)
-        f = []
-        for block in sorted(self.info['grind_stats'][0].keys()):
-            f.append(Widget.block_details_box(self.info['grind_stats'],
-                                              self.info['miner_rewards_cad'],
-                                              block, SPEARMINT_THEME))
-        f.reverse()
-        c = urwid.ListBox([dt, cpu, ram, mem, i, s] + f[:3])
+        c = urwid.ListBox([dt, cpu, ram, mem])
         return c
 
     def column_2(self):
@@ -145,7 +131,8 @@ class Screen():
                                self.info['price_btccad'], SPARK_THEME)
         blk = Widget.block_totals(self.info['grind_stats'],
                                   self.info['price_btccad'], GREEN_THEME)
-        c = urwid.ListBox([fees, blk])
+        p = Widget.connected_peers(self.info['peers'], PURPLE_THEME)
+        c = urwid.ListBox([fees, blk, p])
         return c
 
     def _assemble_body_row(self):

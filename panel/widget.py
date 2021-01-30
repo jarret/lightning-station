@@ -200,7 +200,7 @@ class Widget():
     def _fmt_seconds(seconds):
         m = seconds // 60
         s = seconds % 60
-        return "%d min %d sec" % (m, s)
+        return "%d min %02d sec" % (m, s)
 
     @staticmethod
     def _fmt_timestamp(timestamp):
@@ -587,7 +587,9 @@ class Widget():
         lines.append(Widget._title_row(rows[0], theme))
         for row in rows[1:]:
             lines.append(Widget._row(row, theme))
-        return Widget._line_pile_box(lines, "Transaction Vins/Vouts", theme)
+        return Widget._line_pile_box(lines,
+                                     "Transaction Input and Output Counts",
+                                     theme)
 
     @staticmethod
     def input_output_types(grind_stats, price_btccad, theme):
@@ -632,7 +634,8 @@ class Widget():
         lines.append(Widget._title_row(rows[0], theme))
         for row in rows[1:]:
             lines.append(Widget._row(row, theme))
-        return Widget._line_pile_box(lines, "Transaction Inputs and Outputs",
+        return Widget._line_pile_box(lines,
+                                     "Transaction Input and Output Types",
                                      theme)
 
     @staticmethod
@@ -707,6 +710,32 @@ class Widget():
         for row in rows[1:]:
             lines.append(Widget._row(row, theme))
         return Widget._line_pile_box(lines, "Block Totals", theme)
+
+    @staticmethod
+    def connected_peers(peers, theme):
+        (peers,) = recent((peers,), 60 * 60 * 4)
+        if peers is None:
+            return Widget._dummy_box("(no recent peer data)", theme)
+
+        t_row = ['Address', "Version", "Height", "Ping", "Bytes Sent",
+                 "Bytes Received", "Connected"]
+        rows = [t_row]
+        for peer in peers:
+            connected_time = round(time.time() - peer['conntime'])
+            rows.append([peer['address'],
+                         peer['subver'],
+                         str(peer['synced_blocks']),
+                         "%dms" % peer['ping_ms'],
+                         "{:,}".format(peer['bytes_send']),
+                         "{:,}".format(peer['bytes_recv']),
+                         Widget._fmt_seconds(connected_time),
+                        ])
+        rows = Widget.pad_align_cols(rows)
+        lines = []
+        lines.append(Widget._title_row(rows[0], theme))
+        for row in rows[1:]:
+            lines.append(Widget._row(row, theme))
+        return Widget._line_pile_box(lines, "Connected Peers", theme)
 
     @staticmethod
     def date_and_time_box(timestamp, theme):

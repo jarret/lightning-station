@@ -94,6 +94,31 @@ class Bstatd(Service):
 
     ###########################################################################
 
+    def getpeerinfo_callback(self, peerinfo):
+        if peerinfo:
+            peers = []
+            for p in peerinfo:
+                p = {'subver':        p['subver'],
+                     'address':       p['addr'].split(":")[0],
+                     'synced_blocks': p['synced_blocks'],
+                     'ping_ms':       round(p['pingtime'] * 1000),
+                     'bytes_send':    p['bytessent'],
+                     'bytes_recv':    p['bytesrecv'],
+                     'conntime':      p['conntime']}
+                peers.append(p)
+            ms = [('peers', peers)]
+            for tag, value in ms:
+                message = json.dumps({tag: value}).encode("utf8")
+                tag = tag.encode("utf8")
+                self.publish(tag, message)
+        reactor.callLater(5.0, self.start_peerinfo)
+
+    def start_peerinfo(self):
+        d = threads.deferToThread(Bitcoind.getpeerinfo)
+        d.addCallback(self.getpeerinfo_callback)
+
+    ###########################################################################
+
     def getblockchaininfo_callback(self, blockchaininfo):
         if blockchaininfo:
             ms = [('blockchain_sizeondisk', blockchaininfo['size_on_disk']),
@@ -201,6 +226,7 @@ class Bstatd(Service):
     def start(self):
         reactor.callLater(0.1, self.start_mempoolinfo)
         reactor.callLater(0.1, self.start_networkinfo)
+        reactor.callLater(0.1, self.start_peerinfo)
         reactor.callLater(0.1, self.start_estimatefees)
 
     def stop(self):

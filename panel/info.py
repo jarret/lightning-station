@@ -32,6 +32,7 @@ DEFAULT_INFO = {
     'mempool_bytes':    0,
     'network_version':  "/Satoshi:0.20.1/",
     'network_connections':  10,
+    'peers': [],
     'fee_estimates':   {1:   10,
                         5:   9,
                         25:  8,
