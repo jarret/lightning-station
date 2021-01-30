@@ -143,7 +143,9 @@ class Screen():
     def column_4(self):
         fees = Widget.fees_paid(self.info['grind_stats'],
                                self.info['price_btccad'], SPARK_THEME)
-        c = urwid.ListBox([fees])
+        blk = Widget.block_totals(self.info['grind_stats'],
+                                  self.info['price_btccad'], GREEN_THEME)
+        c = urwid.ListBox([fees, blk])
         return c
 
     def _assemble_body_row(self):

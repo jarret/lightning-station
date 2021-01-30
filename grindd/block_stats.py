@@ -106,7 +106,7 @@ class BlockStats():
 
     def get_all_fees_paid(self, info):
         return [f for f in
-                [self.get_fees_paid(tx) for tx in info['tx']] if f > 0, ]
+                [self.get_fees_paid(tx) for tx in info['tx']] if f > 0]
 
     ###########################################################################
 
@@ -171,6 +171,8 @@ class BlockStats():
         r = {}
         r['height'] = info['height']
         r['block_hash'] = self.block_hash
+        r['mediantime'] = info['mediantime']
+        r['time'] = info['time']
         r['size'] = info['size']
         r['weight'] = info['weight']
         r['n_transactions'] = len(info['tx'])

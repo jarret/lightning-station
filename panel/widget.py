@@ -208,6 +208,11 @@ class Widget():
         return dt.strftime('%b %d, %H:%M:%S')
 
     @staticmethod
+    def _fmt_timestamp_small(timestamp):
+        dt = datetime.fromtimestamp(timestamp)
+        return dt.strftime('%H:%M:%S')
+
+    @staticmethod
     def _elapsed_line(elapsed, since, theme):
         a = (theme['major_text'], " " + Widget._fmt_seconds(elapsed))
         i = (theme['minor_text'], " since %s " % since)
@@ -286,7 +291,7 @@ class Widget():
     @staticmethod
     def estimates_box(fee_estimates, fee_estimates_eco, theme):
         (fee_estimates, fee_estimates_eco) = recent(
-            (fee_estimates, fee_estimates_eco), 60 * 60)
+            (fee_estimates, fee_estimates_eco), 60 * 60 * 4)
         if fee_estimates is None:
             return Widget._dummy_box("(no recent estimate data)", theme)
 
@@ -324,7 +329,7 @@ class Widget():
 
     @staticmethod
     def cad_estimates_box(fee_estimates_cad_250, theme):
-        (fee_estimates_cad_250,) = recent((fee_estimates_cad_250,), 60 * 60)
+        (fee_estimates_cad_250,) = recent((fee_estimates_cad_250,), 60 * 60 * 4)
         if fee_estimates_cad_250 is None:
             return Widget._dummy_box("(no recent estimate data)", theme)
         blocks = sorted(fee_estimates_cad_250.keys(), key=lambda x: int(x))
@@ -389,7 +394,7 @@ class Widget():
 
     @staticmethod
     def block_details_box(grind_stats, rewards, block, theme):
-        (grind_stats, rewards) = recent((grind_stats, rewards), 60 * 60)
+        (grind_stats, rewards) = recent((grind_stats, rewards), 60 * 60 * 4)
         if grind_stats is None:
             return Widget._dummy_box("(no recent block data)", theme)
         grind_stats = grind_stats[block]
@@ -410,7 +415,7 @@ class Widget():
     @staticmethod
     def value_transferred(grind_stats, price_btccad, theme):
         (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
-                                             60 * 60)
+                                             60 * 60 * 4)
         if grind_stats is None:
             return Widget._dummy_box("(no recent block data)", theme)
 
@@ -471,7 +476,7 @@ class Widget():
     @staticmethod
     def value_transferred(grind_stats, price_btccad, theme):
         (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
-                                             60 * 60)
+                                             60 * 60 * 4)
         if grind_stats is None:
             return Widget._dummy_box("(no recent tx data)", theme)
 
@@ -507,7 +512,7 @@ class Widget():
     @staticmethod
     def tx_size(grind_stats, price_btccad, theme):
         (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
-                                             60 * 60)
+                                             60 * 60 * 4)
         if grind_stats is None:
             return Widget._dummy_box("(no recent tx data)", theme)
 
@@ -546,7 +551,7 @@ class Widget():
     @staticmethod
     def inputs_outputs(grind_stats, price_btccad, theme):
         (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
-                                             60 * 60)
+                                             60 * 60 * 4)
         if grind_stats is None:
             return Widget._dummy_box("(no recent tx data)", theme)
 
@@ -587,7 +592,7 @@ class Widget():
     @staticmethod
     def input_output_types(grind_stats, price_btccad, theme):
         (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
-                                             60 * 60)
+                                             60 * 60 * 4)
         if grind_stats is None:
             return Widget._dummy_box("(no recent tx data)", theme)
 
@@ -627,17 +632,16 @@ class Widget():
         lines.append(Widget._title_row(rows[0], theme))
         for row in rows[1:]:
             lines.append(Widget._row(row, theme))
-        return Widget._line_pile_box(lines, "Transaction Vins/Vouts", theme)
+        return Widget._line_pile_box(lines, "Transaction Inputs and Outputs",
+                                     theme)
 
     @staticmethod
     def fees_paid(grind_stats, price_btccad, theme):
         (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
-                                             60 * 60)
+                                             60 * 60 * 4)
         if grind_stats is None:
             return Widget._dummy_box("(no recent tx data)", theme)
 
-        #import json
-        #print(json.dumps(grind_stats, indent=1))
         t_row = ['Block', "Mean BTC", "Min BTC", "Median BTC", "Max BTC",
                  "Mean CAD", "Min CAD", "Median CAD", "Max CAD"]
         rows = [t_row]
@@ -667,6 +671,42 @@ class Widget():
         for row in rows[1:]:
             lines.append(Widget._row(row, theme))
         return Widget._line_pile_box(lines, "Transaction Fees Paid", theme)
+
+    @staticmethod
+    def block_totals(grind_stats, price_btccad, theme):
+        (grind_stats, price_btccad) = recent((grind_stats, price_btccad),
+                                             60 * 60 * 4)
+        if grind_stats is None:
+            return Widget._dummy_box("(no recent block data)", theme)
+
+        t_row = ['Block', "Time", "MedianTime", "New BTC", "Fees BTC",
+                 "New CAD", "Fees CAD", "Size", "Weight"]
+        rows = [t_row]
+        for block in sorted(grind_stats.keys(), reverse=True):
+            t = Widget._fmt_timestamp_small(grind_stats[block]['time'])
+            mt = Widget._fmt_timestamp_small(grind_stats[block]['mediantime'])
+            new_coins = grind_stats[block]['new_coins']
+            miner_fees = grind_stats[block]['miner_fees']
+            new_coins_cad = new_coins * price_btccad
+            miner_fees_cad = miner_fees * price_btccad
+            size = grind_stats[block]['size']
+            weight = grind_stats[block]['weight']
+            rows.append([str(block),
+                         t,
+                         mt,
+                         "%0.2f" % new_coins,
+                         "%0.8f" % miner_fees,
+                         "${:,.2f}".format(round(new_coins_cad, 2)),
+                         "${:,.2f}".format(round(miner_fees_cad, 2)),
+                         "{:,}".format(size),
+                         "{:,}".format(weight),
+                        ])
+        rows = Widget.pad_align_cols(rows)
+        lines = []
+        lines.append(Widget._title_row(rows[0], theme))
+        for row in rows[1:]:
+            lines.append(Widget._row(row, theme))
+        return Widget._line_pile_box(lines, "Block Totals", theme)
 
     @staticmethod
     def date_and_time_box(timestamp, theme):
