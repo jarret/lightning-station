@@ -1,5 +1,5 @@
 [Unit]
-Description=Bitcoind Stat Service
+Description=Lightningd Stat Service
 Requires=bitcoind.service
 After=bitcoind.service
 Wants=network-online.target
@@ -9,8 +9,8 @@ After=network-online.target
 [Service]
 ExecStart=/home/pi/.local/bin/twistd \
     --nodaemon \
-    --python=/home/pi/btc-rust/git/lightning-station/bstatd/bstatd.tac \
-    --pidfile bstatd.pid
+    --python=/home/pi/btc-rust/git/lightning-station/lstatd/lstatd.tac \
+    --pidfile lstatd.pid
 
 WorkingDirectory=/tmp/
 
