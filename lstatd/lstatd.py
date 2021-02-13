@@ -53,7 +53,7 @@ class Lstatd(Service):
 
     def publish_info(self, info):
         for tag, message in info.items():
-            message = json.dumps(message).encode("utf8")
+            message = json.dumps({tag: message}).encode("utf8")
             tag = tag.encode("utf8")
             self.publish(tag, message)
 
@@ -84,8 +84,47 @@ class Lstatd(Service):
 
     ###########################################################################
 
+    @staticmethod
+    def list_peers():
+        info = LIGHTNING_RPC.listpeers()
+        if not info:
+            return None
+        channels = []
+        for peer in info['peers']:
+            i = peer['id']
+            for channel in peer['channels']:
+                scid = (channel['short_channel_id'] if
+                        'short_channel_id' in channel else None)
+                direction = (channel['direction'] if
+                             'direction' in channel else None)
+                spend = (channel['spendable_msatoshi'] if
+                         'spendable_msatoshi' in channel else None)
+                recv = (channel['receivable_msatoshi'] if
+                        'receivable_msatoshi' in channel else None)
+                c = {'peer_node_id':        i,
+                     'short_channel_id':    scid,
+                     'direction':           direction,
+                     'spendable_msatoshi':  spend,
+                     'receivable_msatoshi': recv,
+                    }
+                channels.append(c)
+        return {'ln_channels': channels}
+
+    def list_peers_callback(self, info):
+        print("cb: %s" % info)
+        if info:
+            self.publish_info(info)
+        reactor.callLater(5.0, self.start_list_peers)
+
+    def start_list_peers(self):
+        d = threads.deferToThread(Lstatd.list_peers)
+        d.addCallback(self.list_peers_callback)
+
+    ###########################################################################
+
     def start(self):
         reactor.callLater(0.1, self.start_get_info)
+        reactor.callLater(0.1, self.start_list_peers)
 
     def stop(self):
         pass

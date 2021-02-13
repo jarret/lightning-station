@@ -34,6 +34,15 @@ CSTAT_TAGS = ['ip_addr',
               'mem_total',
               'mem_used',
               'mem_used_pct']
+
+LSTAT_TAGS = ['ln_version',
+              'ln_alias',
+              'ln_inet_peers',
+              'ln_channels_pending',
+              'ln_channels_active',
+              'ln_channels_inactive',
+              'ln_channels']
+
 GRIND_TAGS = ['grind_stats']
 SUPPLY_TAGS = ['total_supply']
 
@@ -64,6 +73,13 @@ class Subscribe():
         connection = ZmqSubConnection(self.zmq_factory, cstat_endpoint)
         connection.gotMessage = self.update_info
         for tag in CSTAT_TAGS:
+            connection.subscribe(tag.encode("utf8"))
+
+        lstat_endpoint = config['Panel']['ZmqSubLstatEndpoint']
+        lstat_endpoint = ZmqEndpoint(ZmqEndpointType.connect, lstat_endpoint)
+        connection = ZmqSubConnection(self.zmq_factory, lstat_endpoint)
+        connection.gotMessage = self.update_info
+        for tag in LSTAT_TAGS:
             connection.subscribe(tag.encode("utf8"))
 
         grind_endpoint = config['Panel']['ZmqSubGrindEndpoint']

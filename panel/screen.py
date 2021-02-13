@@ -98,7 +98,14 @@ class Screen():
                                    self.info['fee_estimates_eco'], PURPLE_THEME)
         cadfee = Widget.cad_estimates_box(self.info['fee_estimates_cad_250'],
                                           COKE_THEME)
-        c = urwid.ListBox([fee, cadfee])
+        ln = Widget.ln_summary(self.info['ln_version'],
+                               self.info['ln_alias'],
+                               self.info['ln_inet_peers'],
+                               self.info['ln_channels_pending'],
+                               self.info['ln_channels_active'],
+                               self.info['ln_channels_inactive'],
+                               self.info['ln_channels'], BLUE_THEME)
+        c = urwid.ListBox([fee, cadfee, ln])
         return c
 
     #def column_3(self):

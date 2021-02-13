@@ -738,6 +738,34 @@ class Widget():
         return Widget._line_pile_box(lines, "Connected Peers", theme)
 
     @staticmethod
+    def ln_summary(ln_version, ln_alias, ln_inet_peers, ln_channels_pending,
+                   ln_channels_active, ln_channels_inactive, ln_channels,
+                   theme):
+        (ln_version, ln_alias, ln_inet_peers, ln_channels_pending,
+         ln_channels_active, ln_channels) = recent(
+            (ln_version, ln_alias, ln_inet_peers, ln_channels_pending,
+             ln_channels_active, ln_channels), 60 * 60)
+        if ln_version is None:
+            return Widget._dummy_box("(no recent lightning network data)",
+                                     theme)
+        u = Widget._stat_line("Version", ln_version, None, theme)
+        a = Widget._stat_line("Alias", ln_alias, None, theme)
+        c = Widget._stat_line("Active Channels", str(ln_channels_active), None,
+                              theme)
+        sum_send = 0
+        sum_recv = 0
+        for channel in ln_channels:
+            sum_send += channel['spendable_msatoshi']
+            sum_recv += channel['receivable_msatoshi']
+        sum_send = "{:,.3f}".format((sum_send / 1000.0))
+        sum_recv = "{:,.3f}".format((sum_recv / 1000.0))
+        s = Widget._stat_line("Sendable", sum_send, "sats", theme)
+        r = Widget._stat_line("Receivable", sum_recv, "sats", theme)
+
+        lines = [u, a, c, s, r]
+        return Widget._line_pile_box(lines, "Lightning Network Node", theme)
+
+    @staticmethod
     def date_and_time_box(timestamp, theme):
         timestr = datetime.fromtimestamp(timestamp).strftime(
             " %d/%m/%y %H:%M:%S ")
